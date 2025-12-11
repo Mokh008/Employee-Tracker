@@ -32,13 +32,14 @@ function sendLocation() {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // API لتحويل الإحداثيات إلى عنوان بالعربي (مجاناً)
+        // API لتحويل الإحداثيات إلى عنوان بالعربي
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
         .then(response => response.json())
         .then(data => {
-            var location = data.display_name;
+            // ناخد المدينة او القرية فقط
+            var location = data.address.city || data.address.town || data.address.village || "غير معروف";
 
-            // ابعت لجوجل شيت
+            // ابعت البيانات لجوجل شيت
             fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
                 method: "POST",
                 body: new URLSearchParams({
@@ -47,7 +48,12 @@ function sendLocation() {
                 })
             });
 
-            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔";
+            // تسجيل التاريخ والوقت
+            var now = new Date();
+            var date = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2,"0") + "-" + now.getDate().toString().padStart(2,"0");
+            var time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0") + ":" + now.getSeconds().toString().padStart(2,"0");
+
+            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔\n"+location+"\n"+date+" "+time;
         });
     }
 
