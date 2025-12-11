@@ -92,11 +92,15 @@ function sendLocation() {
             var state = addr.state || addr.region || "غير معروف";
             var location = village + " – " + district + " – " + state;
 
-            fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
+            // إرسال البيانات للـ Google Sheet الجديد مع Location Link
+            fetch("https://script.google.com/macros/s/AKfycbwS_x006x5DDYH5KMPvKgY8gKDcRdmr_H0kwk9Zbh8wg2NPUA8hmvuulTA5AGIyDyu7-g/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     "id": id,
-                    "location": location
+                    "location": location,
+                    "lat": lat,
+                    "lng": lng,
+                    "location_link": "https://www.google.com/maps?q=" + lat + "," + lng
                 })
             });
 
