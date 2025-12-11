@@ -30,7 +30,8 @@ function sendLocation() {
     }
 
     if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(success,error);
+        // هنا اضفنا enableHighAccuracy للحصول على GPS دقيق
+        navigator.geolocation.getCurrentPosition(success,error, { enableHighAccuracy: true });
     } else { alert("المتصفح لا يدعم تحديد الموقع."); }
 
     function success(pos){
@@ -56,7 +57,9 @@ function sendLocation() {
         document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔\n"+maps_link+"\n"+date+" "+time;
     }
 
-    function error(){ alert("تعذر الحصول على الموقع."); }
+    function error(){
+        alert("تعذر الحصول على الموقع. حاول التأكد من تشغيل GPS وإعطاء الإذن.");
+    }
 }
 </script>
 
