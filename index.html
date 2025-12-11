@@ -87,22 +87,16 @@ function sendLocation() {
         .then(response => response.json())
         .then(data => {
             var addr = data.address;
-
-            // جمع كل الحقول الممكنة لتقليل ظهور "غير معروف"
             var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
-            var district = addr.county || addr.suburb || addr.municipality || addr.city_district || village || "غير معروف";
+            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
             var state = addr.state || addr.region || "غير معروف";
-
             var location = village + " – " + district + " – " + state;
 
-            // إرسال البيانات للـ Google Sheet
             fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     "id": id,
-                    "location": location,
-                    "lat": lat,
-                    "lng": lng
+                    "location": location
                 })
             });
 
