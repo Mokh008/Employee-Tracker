@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل موقع الموظف</title>
+</head>
+<body style="text-align:center; font-family:Arial;">
+    <h2>تسجيل حضور الموظفين</h2>
+
+    <input id="empId" placeholder="ادخل رقم ID" style="padding:10px; width:200px;">
+    <br><br>
+
+    <button onclick="sendLocation()" style="padding:10px 20px;">احصل على موقعى الحالى</button>
+
+    <p id="status"></p>
+
+<script>
+function sendLocation() {
+    var id = document.getElementById("empId").value;
+    if(!id){
+        document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
+        return;
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+        alert("المتصفح لا يدعم تحديد الموقع.");
+    }
+
+    function success(pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+
+        // API لتحويل الإحداثيات إلى عنوان بالعربي (مجاناً)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
+        .then(response => response.json())
+        .then(data => {
+            var location = data.display_name;
+
+            // ابعت لجوجل شيت
+            fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
+                method: "POST",
+                body: new URLSearchParams({
+                    "id": id,
+                    "location": location
+                })
+            });
+
+            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔";
+        });
+    }
+
+    function error() {
+        alert("تعذر الحصول على الموقع.");
+    }
+}
+</script>
+
+</body>
+</html>
