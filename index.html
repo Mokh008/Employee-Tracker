@@ -36,8 +36,12 @@ function sendLocation() {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
         .then(response => response.json())
         .then(data => {
-            // ناخد المدينة او القرية فقط
-            var location = data.address.city || data.address.town || data.address.village || "غير معروف";
+            // ناخد القرية – المركز – القسم/المحافظة
+            var village = data.address.village || data.address.town || data.address.city || "غير معروف"; 
+            var district = data.address.county || data.address.suburb || "غير معروف"; // المركز
+            var state = data.address.state || "غير معروف"; // القسم/المحافظة
+
+            var location = village + " – " + district + " – " + state;
 
             // ابعت البيانات لجوجل شيت
             fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
