@@ -1,18 +1,69 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>تسجيل موقع الموظف</title>
+<meta charset="UTF-8">
+<title>تسجيل حضور الموظفين</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .card {
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        text-align: center;
+        width: 320px;
+    }
+    .card h2 {
+        margin-bottom: 25px;
+        color: #333;
+    }
+    input[type="text"] {
+        padding: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    #status {
+        margin-top: 20px;
+        font-weight: bold;
+        color: green;
+        white-space: pre-line;
+    }
+</style>
 </head>
-<body style="text-align:center; font-family:Arial;">
+<body>
+
+<div class="card">
     <h2>تسجيل حضور الموظفين</h2>
-
-    <input id="empId" placeholder="ادخل رقم ID" style="padding:10px; width:200px;">
-    <br><br>
-
-    <button onclick="sendLocation()" style="padding:10px 20px;">احصل على موقعى الحالى</button>
-
+    <input id="empId" type="text" placeholder="ادخل رقم ID">
+    <button onclick="sendLocation()">احصل على موقعى الحالى</button>
     <p id="status"></p>
+</div>
 
 <script>
 function sendLocation() {
@@ -22,28 +73,25 @@ function sendLocation() {
         return;
     }
 
-    if (navigator.geolocation) {
+    if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(success, error);
     } else {
         alert("المتصفح لا يدعم تحديد الموقع.");
     }
 
-    function success(pos) {
+    function success(pos){
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // API لتحويل الإحداثيات إلى عنوان بالعربي
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
         .then(response => response.json())
         .then(data => {
-            // ناخد القرية – المركز – القسم/المحافظة
-            var village = data.address.village || data.address.town || data.address.city || "غير معروف"; 
-            var district = data.address.county || data.address.suburb || "غير معروف"; // المركز
-            var state = data.address.state || "غير معروف"; // القسم/المحافظة
-
+            var addr = data.address;
+            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
+            var state = addr.state || addr.region || "غير معروف";
             var location = village + " – " + district + " – " + state;
 
-            // ابعت البيانات لجوجل شيت
             fetch("https://script.google.com/macros/s/AKfycbx2y1LW-5-IOVupPYz4J5tNtur8LjwOsBi2Cc2Nn1F7kFXhfdm7_3jT6MPK-UINJjZK1A/exec", {
                 method: "POST",
                 body: new URLSearchParams({
@@ -52,7 +100,6 @@ function sendLocation() {
                 })
             });
 
-            // تسجيل التاريخ والوقت
             var now = new Date();
             var date = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2,"0") + "-" + now.getDate().toString().padStart(2,"0");
             var time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0") + ":" + now.getSeconds().toString().padStart(2,"0");
@@ -61,7 +108,7 @@ function sendLocation() {
         });
     }
 
-    function error() {
+    function error(){
         alert("تعذر الحصول على الموقع.");
     }
 }
