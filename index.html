@@ -68,18 +68,22 @@
 <script>
 function sendLocation() {
     var id = document.getElementById("empId").value;
-    if(!id){
+    if (!id) {
         document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
         return;
     }
 
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(success, error);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {
+            enableHighAccuracy: true,  // طلب دقة عالية
+            timeout: 5000,             // تحديد وقت انتظار
+            maximumAge: 0              // لا تستخدم الموقع المخزن مسبقًا
+        });
     } else {
         alert("المتصفح لا يدعم تحديد الموقع.");
     }
 
-    function success(pos){
+    function success(pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
@@ -108,11 +112,11 @@ function sendLocation() {
             var date = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2,"0") + "-" + now.getDate().toString().padStart(2,"0");
             var time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0") + ":" + now.getSeconds().toString().padStart(2,"0");
 
-            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔\n"+location+"\n"+date+" "+time;
+            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔\n" + location + "\n" + date + " " + time;
         });
     }
 
-    function error(){
+    function error() {
         alert("تعذر الحصول على الموقع.");
     }
 }
