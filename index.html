@@ -68,18 +68,22 @@
 <script>
 function sendLocation() {
     var id = document.getElementById("empId").value;
-    if(!id){
+    if (!id) {
         document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
         return;
     }
 
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(success, error);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        });
     } else {
         alert("المتصفح لا يدعم تحديد الموقع.");
     }
 
-    function success(pos){
+    function success(pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
@@ -87,12 +91,28 @@ function sendLocation() {
         .then(response => response.json())
         .then(data => {
             var addr = data.address;
+
             var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
             var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
             var state = addr.state || addr.region || "غير معروف";
+
+            // ----------------------------
+            //  تصحيح عنوان ملوى
+            // ----------------------------
+            if (state === "المنيا") {
+                // حدود ملوى التقريبية
+                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
+
+                    district = "ملوى";   // اسم المركز
+                    if (village === "غير معروف" || village.includes("قسم") || village.includes("غير")) {
+                        village = "ملوى"; // لو الرجوع مفهوش قرية صحيحة
+                    }
+                }
+            }
+
             var location = village + " – " + district + " – " + state;
 
-            // إرسال البيانات للـ Google Sheet الجديد مع Location Link
+            // إرسال البيانات للـ Google Sheet
             fetch("https://script.google.com/macros/s/AKfycbwS_x006x5DDYH5KMPvKgY8gKDcRdmr_H0kwk9Zbh8wg2NPUA8hmvuulTA5AGIyDyu7-g/exec", {
                 method: "POST",
                 body: new URLSearchParams({
@@ -108,11 +128,14 @@ function sendLocation() {
             var date = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2,"0") + "-" + now.getDate().toString().padStart(2,"0");
             var time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0") + ":" + now.getSeconds().toString().padStart(2,"0");
 
-            document.getElementById("status").innerText = "تم تسجيل الموقع بنجاح ✔\n"+location+"\n"+date+" "+time;
+            document.getElementById("status").innerText =
+                "تم تسجيل الموقع بنجاح ✔\n" +
+                location + "\n" +
+                date + " " + time;
         });
     }
 
-    function error(){
+    function error() {
         alert("تعذر الحصول على الموقع.");
     }
 }
