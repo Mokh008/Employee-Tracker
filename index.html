@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>تسجيل حضور الموظفين</title>
-
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -57,7 +56,6 @@
     }
 </style>
 </head>
-
 <body>
 
 <div class="card">
@@ -69,90 +67,68 @@
 
 <script>
 function sendLocation() {
-
-    var id = document.getElementById("empId").value.trim();
+    var id = document.getElementById("empId").value;
     if (!id) {
         document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
         return;
     }
 
-    if (!navigator.geolocation) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        });
+    } else {
         alert("المتصفح لا يدعم تحديد الموقع.");
-        return;
     }
 
-    navigator.geolocation.getCurrentPosition(success, error, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
-    });
-
     function success(pos) {
-
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
+        // استخدام OpenStreetMap لتحويل lat/lng لعناوين عربية
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-        .then(res => res.json())
+        .then(response => response.json())
         .then(data => {
+            var addr = data.address;
 
-            var addr = data.address || {};
+            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
+            var state = addr.state || addr.region || "غير معروف";
 
-            // القرية / المدينة
-            var village =
-                addr.village ||
-                addr.hamlet ||
-                addr.city_district ||
-                addr.neighbourhood ||
-                addr.town ||
-                addr.city ||
-                "غير معروف";
+            // تصحيح بعض الحالات الخاصة مثل ملوى
+            if (state === "المنيا") {
+                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
+                    district = "ملوى";
+                    if (village === "غير معروف" || village.includes("قسم") || village.includes("غير")) {
+                        village = "ملوى";
+                    }
+                }
+            }
 
-            // المركز
-            var district =
-                addr.county ||
-                addr.municipality ||
-                addr.city ||
-                "غير معروف";
+            var location = village + " – " + district + " – " + state;
 
-            // المحافظة
-            var state =
-                addr.state ||
-                addr.region ||
-                "غير معروف";
-
-            var location = village + " - " + district + " - " + state;
-
-            // إرسال البيانات للـ Google Sheet (URL كما هو)
-            fetch("https://script.google.com/macros/s/AKfycbwS_x006x5DDYH5KMPvKgY8gKDcRdmr_H0kwk9Zbh8wg2NPUA8hmvuulTA5AGIyDyu7-g/exec", {
+            // إرسال البيانات للـ Google Sheet الجديد
+            fetch("https://script.google.com/macros/s/AKfycbzu1EivxXgHUa6c7ledf2L5SWypjtr5NKyVCBSjW0joq2Is293QgE0qn6vqoXCXnF6X3Q/exec", {
                 method: "POST",
                 body: new URLSearchParams({
-                    id: id,
-                    location: location,
-                    lat: lat,
-                    lng: lng,
-                    location_link: "https://www.google.com/maps?q=" + lat + "," + lng
+                    "id": id,
+                    "location": location,
+                    "lat": lat,
+                    "lng": lng,
+                    "location_link": "https://www.google.com/maps?q=" + lat + "," + lng
                 })
             });
 
             var now = new Date();
-            var date =
-                now.getFullYear() + "-" +
-                (now.getMonth() + 1).toString().padStart(2, "0") + "-" +
-                now.getDate().toString().padStart(2, "0");
-
-            var time =
-                now.getHours().toString().padStart(2, "0") + ":" +
-                now.getMinutes().toString().padStart(2, "0") + ":" +
-                now.getSeconds().toString().padStart(2, "0");
+            var date = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2,"0") + "-" + now.getDate().toString().padStart(2,"0");
+            var time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0") + ":" + now.getSeconds().toString().padStart(2,"0");
 
             document.getElementById("status").innerText =
                 "تم تسجيل الموقع بنجاح ✔\n" +
                 location + "\n" +
                 date + " " + time;
-        })
-        .catch(() => {
-            alert("حدث خطأ أثناء تحويل الموقع.");
         });
     }
 
