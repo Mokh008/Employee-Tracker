@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>تسجيل حضور الموظفين</title>
-
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -57,7 +56,6 @@
     }
 </style>
 </head>
-
 <body>
 
 <div class="card">
@@ -68,105 +66,98 @@
 </div>
 
 <script>
-function sendLocation() {
+// بصمة الجهاز (من غير ما نبوظ أي حاجة)
+function getDeviceId() {
+    return btoa(
+        navigator.userAgent +
+        screen.width +
+        screen.height +
+        navigator.language
+    );
+}
 
-    var id = document.getElementById("empId").value.trim();
+function sendLocation() {
+    var id = document.getElementById("empId").value;
     if (!id) {
         document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
         return;
     }
 
-    if (!navigator.geolocation) {
-        alert("المتصفح لا يدعم تحديد الموقع");
-        return;
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        });
+    } else {
+        alert("المتصفح لا يدعم تحديد الموقع.");
     }
 
-    navigator.geolocation.getCurrentPosition(success, error, {
-        enableHighAccuracy: true,
-        timeout: 7000,
-        maximumAge: 0
-    });
-
     function success(pos) {
-
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`
-        )
-        .then(res => res.json())
+        // 🔹 نفس آلية تحديد القرية / المركز / المحافظة (من غير أي تعديل)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
+        .then(response => response.json())
         .then(data => {
+            var addr = data.address;
 
-            var addr = data.address || {};
-            var display = data.display_name || "";
+            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
+            var state = addr.state || addr.region || "غير معروف";
 
-            // أولوية استخراج اسم القرية
-            var village =
-                addr.village ||
-                addr.hamlet ||
-                addr.suburb ||
-                addr.town ||
-                addr.city_district ||
-                "";
-
-            var district =
-                addr.county ||
-                addr.state_district ||
-                "";
-
-            var state =
-                addr.state ||
-                addr.region ||
-                "";
-
-            // fallback لو القرية مش واضحة
-            if (!village) {
-                var parts = display.split(",");
-                if (parts.length > 0) {
-                    village = parts[0].trim();
+            if (state === "المنيا") {
+                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
+                    district = "ملوى";
+                    if (village === "غير معروف" || village.includes("قسم") || village.includes("غير")) {
+                        village = "ملوى";
+                    }
                 }
             }
 
-            var location = village;
-            if (district) location += " – " + district;
-            if (state) location += " – " + state;
+            var location = village + " – " + district + " – " + state;
 
-            // إرسال البيانات لـ Google Sheet
-            fetch(
-                "https://script.google.com/macros/s/AKfycbz79REr0hPYxoLgAaP4S6ET_qnDRvVsOyX0Vsyh4Xq-4wJ-YxeBgorsLwkoJDU5bIfyzQ/exec",
-                {
+            // 🔹 جلب الـ IP
+            fetch("https://api.ipify.org?format=json")
+            .then(res => res.json())
+            .then(ipData => {
+
+                var deviceId = getDeviceId();
+                var ip = ipData.ip;
+
+                // 🔹 الإرسال على الـ URL الجديد
+                fetch("https://script.google.com/macros/s/AKfycbwNd3X39-4xx3h6GL2TsDMUl0ow4euvboatrsUTKI_oqueb_oorC5Vn1EEPEkctkpJqvw/exec", {
                     method: "POST",
                     body: new URLSearchParams({
-                        id: id,
-                        location: location,
-                        lat: lat,
-                        lng: lng,
-                        location_link: "https://www.google.com/maps?q=" + lat + "," + lng
+                        "id": id,
+                        "location": location,
+                        "lat": lat,
+                        "lng": lng,
+                        "location_link": "https://www.google.com/maps?q=" + lat + "," + lng,
+                        "ip": ip,
+                        "device_id": deviceId
                     })
-                }
-            );
+                });
 
-            var now = new Date();
-            var date =
-                now.getFullYear() + "-" +
-                String(now.getMonth() + 1).padStart(2, "0") + "-" +
-                String(now.getDate()).padStart(2, "0");
+                var now = new Date();
+                var date = now.getFullYear() + "-" +
+                           (now.getMonth()+1).toString().padStart(2,"0") + "-" +
+                           now.getDate().toString().padStart(2,"0");
+                var time = now.getHours().toString().padStart(2,"0") + ":" +
+                           now.getMinutes().toString().padStart(2,"0") + ":" +
+                           now.getSeconds().toString().padStart(2,"0");
 
-            var time =
-                String(now.getHours()).padStart(2, "0") + ":" +
-                String(now.getMinutes()).padStart(2, "0") + ":" +
-                String(now.getSeconds()).padStart(2, "0");
-
-            document.getElementById("status").innerText =
-                "تم تسجيل الموقع بنجاح ✔\n" +
-                location + "\n" +
-                date + " " + time;
+                document.getElementById("status").innerText =
+                    "تم تسجيل الموقع بنجاح ✔\n" +
+                    location + "\n" +
+                    date + " " + time;
+            });
         });
     }
 
     function error() {
-        alert("تعذر الحصول على الموقع");
+        alert("تعذر الحصول على الموقع.");
     }
 }
 </script>
