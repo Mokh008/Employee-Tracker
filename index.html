@@ -66,12 +66,24 @@
 </div>
 
 <script>
+// ====== دالة لجلب Device Fingerprint ثابت ======
+function getDeviceFingerprint() {
+    let fp = localStorage.getItem("device_fp");
+    if (!fp) {
+        fp = crypto.randomUUID();
+        localStorage.setItem("device_fp", fp);
+    }
+    return fp;
+}
+
 function sendLocation() {
     var id = document.getElementById("empId").value;
     if (!id) {
         document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
         return;
     }
+
+    var deviceFp = getDeviceFingerprint();
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error, {
@@ -87,7 +99,6 @@ function sendLocation() {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // استخدام OpenStreetMap لتحويل lat/lng لعناوين عربية
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
         .then(response => response.json())
         .then(data => {
@@ -97,7 +108,6 @@ function sendLocation() {
             var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
             var state = addr.state || addr.region || "غير معروف";
 
-            // تصحيح بعض الحالات الخاصة مثل ملوى
             if (state === "المنيا") {
                 if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
                     district = "ملوى";
@@ -109,15 +119,16 @@ function sendLocation() {
 
             var location = village + " – " + district + " – " + state;
 
-            // إرسال البيانات للـ Google Sheet الجديد
-            fetch("https://script.google.com/macros/s/AKfycbzu1EivxXgHUa6c7ledf2L5SWypjtr5NKyVCBSjW0joq2Is293QgE0qn6vqoXCXnF6X3Q/exec", {
+            // ====== إرسال البيانات للـ Google Script الجديد ======
+            fetch("https://script.google.com/macros/s/AKfycbz79REr0hPYxoLgAaP4S6ET_qnDRvVsOyX0Vsyh4Xq-4wJ-YxeBgorsLwkoJDU5bIfyzQ/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     "id": id,
                     "location": location,
                     "lat": lat,
                     "lng": lng,
-                    "location_link": "https://www.google.com/maps?q=" + lat + "," + lng
+                    "location_link": "https://www.google.com/maps?q=" + lat + "," + lng,
+                    "device_fp": deviceFp
                 })
             });
 
