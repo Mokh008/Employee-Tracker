@@ -69,18 +69,22 @@
 // ================= Device Info =================
 function getDeviceInfo(empId) {
 
+    // الحالة الافتراضية دايمًا Mobile
     var finalStatus = "Mobile";
 
+    // Device ID ثابت للجهاز
     var deviceId = localStorage.getItem("device_id");
     if (!deviceId) {
         deviceId = "DEV-" + Math.random().toString(36).substr(2, 10);
         localStorage.setItem("device_id", deviceId);
     }
 
+    // عدد مرات التسجيل
     var count = localStorage.getItem("device_changes_count");
     count = count ? parseInt(count) + 1 : 1;
     localStorage.setItem("device_changes_count", count);
 
+    // كشف تغيير الجهاز لنفس الـ ID
     var lastDeviceKey = "last_device_for_" + empId;
     var lastDevice = localStorage.getItem(lastDeviceKey);
 
@@ -121,7 +125,7 @@ function sendLocation() {
         var lng = pos.coords.longitude;
 
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-        .then(r => r.json())
+        .then(res => res.json())
         .then(data => {
 
             var addr = data.address || {};
@@ -140,7 +144,7 @@ function sendLocation() {
             var location = village + " – " + district + " – " + state;
             var deviceInfo = getDeviceInfo(id);
 
-            fetch("https://script.google.com/macros/s/AKfycbyr6mm92F-H_lK4GaKXkD-qiduVO_c7-saCTPXzutuUMdAj25uythu736eGMcnX1d0x2Q/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbwTNwsFCzWKoBqyHlRPTtj3DdclIY3yz5XBKgBxAGbUALmH1nTpzka3UQrNankh5TE7ow/exec", {
                 method: "POST",
                 mode: "no-cors",
                 headers: {
