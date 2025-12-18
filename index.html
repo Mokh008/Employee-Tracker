@@ -3,176 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <title>تسجيل حضور الموظفين</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f2f5;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-    }
-    .card {
-        background-color: white;
-        padding: 30px 40px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        text-align: center;
-        width: 320px;
-    }
-    .card h2 {
-        margin-bottom: 25px;
-        color: #333;
-    }
-    input[type="text"] {
-        padding: 10px;
-        width: 100%;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
-    button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        background-color: #007bff;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    #status {
-        margin-top: 20px;
-        font-weight: bold;
-        color: green;
-        white-space: pre-line;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+}
+input {
+    padding: 12px;
+    width: 100%;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+}
+#status {
+    margin-top: 15px;
+    font-weight: bold;
+    white-space: pre-line;
+}
 </style>
 </head>
+
 <body>
 
 <div class="card">
-    <h2>تسجيل حضور الموظفين</h2>
+    <h3>تسجيل الحضور</h3>
     <input id="empId" type="text" placeholder="ادخل رقم ID">
-    <button onclick="sendLocation()">احصل على موقعى الحالى</button>
-    <p id="status"></p>
+    <button onclick="sendLocation()">تسجيل</button>
+    <div id="status"></div>
 </div>
 
 <script>
-// ================= Device Info =================
-function getDeviceInfo(empId) {
+/* ===== Canvas Fingerprint ===== */
+async function getDeviceID() {
 
-    // الحالة الافتراضية دايمًا Mobile
-    var finalStatus = "Mobile";
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
 
-    // Device ID ثابت للجهاز
-    var deviceId = localStorage.getItem("device_id");
-    if (!deviceId) {
-        deviceId = "DEV-" + Math.random().toString(36).substr(2, 10);
-        localStorage.setItem("device_id", deviceId);
-    }
+    ctx.textBaseline = "top";
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#f60";
+    ctx.fillRect(120, 1, 60, 20);
 
-    // عدد مرات التسجيل
-    var count = localStorage.getItem("device_changes_count");
-    count = count ? parseInt(count) + 1 : 1;
-    localStorage.setItem("device_changes_count", count);
+    ctx.fillStyle = "#069";
+    ctx.fillText("Fingerprint", 2, 15);
 
-    // كشف تغيير الجهاز لنفس الـ ID
-    var lastDeviceKey = "last_device_for_" + empId;
-    var lastDevice = localStorage.getItem(lastDeviceKey);
+    ctx.strokeStyle = "rgba(102,204,0,0.7)";
+    ctx.strokeText("Fingerprint", 4, 17);
 
-    if (lastDevice && lastDevice !== deviceId) {
-        finalStatus = "Multiple device changes detected";
-    }
+    var data = canvas.toDataURL();
 
-    localStorage.setItem(lastDeviceKey, deviceId);
+    var extra =
+        navigator.userAgent +
+        screen.width +
+        screen.height +
+        Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    return {
-        device_id: deviceId,
-        device_status: finalStatus,
-        device_changes_count: count
-    };
+    var enc = new TextEncoder();
+    var hashBuffer = await crypto.subtle.digest(
+        "SHA-256",
+        enc.encode(data + extra)
+    );
+
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
 }
-// ===============================================
 
-function sendLocation() {
+/* ===== Main ===== */
+async function sendLocation() {
+
     var id = document.getElementById("empId").value;
     if (!id) {
-        document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
+        document.getElementById("status").innerText = "ادخل رقم ID";
         return;
     }
 
-    if (!navigator.geolocation) {
-        alert("المتصفح لا يدعم تحديد الموقع.");
-        return;
-    }
+    document.getElementById("status").innerText = "جارى التسجيل...";
 
-    navigator.geolocation.getCurrentPosition(success, error, {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-    });
+    var device_id = await getDeviceID();
 
-    function success(pos) {
+    navigator.geolocation.getCurrentPosition(async function (pos) {
+
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-        .then(res => res.json())
-        .then(data => {
+        var location_link =
+            "https://www.google.com/maps?q=" + lat + "," + lng;
 
-            var addr = data.address || {};
-
-            var village  = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
-            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
-            var state    = addr.state || addr.region || "غير معروف";
-
-            if (state === "المنيا") {
-                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
-                    district = "ملوى";
-                    if (village === "غير معروف") village = "ملوى";
-                }
-            }
-
-            var location = village + " – " + district + " – " + state;
-            var deviceInfo = getDeviceInfo(id);
-
-            fetch("https://script.google.com/macros/s/AKfycbwTNwsFCzWKoBqyHlRPTtj3DdclIY3yz5XBKgBxAGbUALmH1nTpzka3UQrNankh5TE7ow/exec", {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: new URLSearchParams({
-                    id: id,
-                    location: location,
-                    lat: lat,
-                    lng: lng,
-                    location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
-                    device_id: deviceInfo.device_id,
-                    device_status: deviceInfo.device_status,
-                    device_changes_count: deviceInfo.device_changes_count
-                })
-            });
-
-            var now = new Date();
+        fetch(
+          "https://script.google.com/macros/s/AKfycbxLF_UW55LMexCCN_-vCdhi0OfnT85En2tEC-YL9YK-vPjwZuz9Fk7rpF2x3QF9z6L1yw/exec",
+          {
+            method: "POST",
+            body: new URLSearchParams({
+                id: id,
+                location: "From GPS",
+                lat: lat,
+                lng: lng,
+                location_link: location_link,
+                device_id: device_id
+            })
+          }
+        )
+        .then(() => {
             document.getElementById("status").innerText =
-                "تم تسجيل الموقع بنجاح ✔\n" +
-                location + "\n" +
-                now.toLocaleString("ar-EG");
+                "✔ تم التسجيل بنجاح";
         });
-    }
 
-    function error() {
-        alert("تعذر الحصول على الموقع.");
-    }
+    }, function () {
+        alert("فشل تحديد الموقع");
+    }, {
+        enableHighAccuracy: true,
+        timeout: 5000
+    });
 }
 </script>
 
