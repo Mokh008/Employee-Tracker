@@ -69,22 +69,18 @@
 // ================= Device Info =================
 function getDeviceInfo(empId) {
 
-    // الحالة الافتراضية دايمًا Mobile
     var finalStatus = "Mobile";
 
-    // Device ID ثابت للجهاز
     var deviceId = localStorage.getItem("device_id");
     if (!deviceId) {
         deviceId = "DEV-" + Math.random().toString(36).substr(2, 10);
         localStorage.setItem("device_id", deviceId);
     }
 
-    // عدد مرات التسجيل من نفس الجهاز
     var count = localStorage.getItem("device_changes_count");
     count = count ? parseInt(count) + 1 : 1;
     localStorage.setItem("device_changes_count", count);
 
-    // ==== كشف تغيير الجهاز لنفس الـ ID ====
     var lastDeviceKey = "last_device_for_" + empId;
     var lastDevice = localStorage.getItem(lastDeviceKey);
 
@@ -109,69 +105,64 @@ function sendLocation() {
         return;
     }
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(success, error, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        });
-    } else {
+    if (!navigator.geolocation) {
         alert("المتصفح لا يدعم تحديد الموقع.");
+        return;
     }
+
+    navigator.geolocation.getCurrentPosition(success, error, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    });
 
     function success(pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            var addr = data.address;
 
-            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+            var addr = data.address || {};
+
+            var village  = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
             var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
-            var state = addr.state || addr.region || "غير معروف";
+            var state    = addr.state || addr.region || "غير معروف";
 
             if (state === "المنيا") {
                 if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
                     district = "ملوى";
-                    if (village === "غير معروف" || village.includes("قسم") || village.includes("غير")) {
-                        village = "ملوى";
-                    }
+                    if (village === "غير معروف") village = "ملوى";
                 }
             }
 
             var location = village + " – " + district + " – " + state;
-
             var deviceInfo = getDeviceInfo(id);
 
             fetch("https://script.google.com/macros/s/AKfycbyr6mm92F-H_lK4GaKXkD-qiduVO_c7-saCTPXzutuUMdAj25uythu736eGMcnX1d0x2Q/exec", {
                 method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
                 body: new URLSearchParams({
-                    "id": id,
-                    "location": location,
-                    "lat": lat,
-                    "lng": lng,
-                    "location_link": "https://www.google.com/maps?q=" + lat + "," + lng,
-                    "device_id": deviceInfo.device_id,
-                    "device_status": deviceInfo.device_status,
-                    "device_changes_count": deviceInfo.device_changes_count
+                    id: id,
+                    location: location,
+                    lat: lat,
+                    lng: lng,
+                    location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
+                    device_id: deviceInfo.device_id,
+                    device_status: deviceInfo.device_status,
+                    device_changes_count: deviceInfo.device_changes_count
                 })
             });
 
             var now = new Date();
-            var date = now.getFullYear() + "-" +
-                (now.getMonth()+1).toString().padStart(2,"0") + "-" +
-                now.getDate().toString().padStart(2,"0");
-
-            var time = now.getHours().toString().padStart(2,"0") + ":" +
-                now.getMinutes().toString().padStart(2,"0") + ":" +
-                now.getSeconds().toString().padStart(2,"0");
-
             document.getElementById("status").innerText =
                 "تم تسجيل الموقع بنجاح ✔\n" +
                 location + "\n" +
-                date + " " + time;
+                now.toLocaleString("ar-EG");
         });
     }
 
