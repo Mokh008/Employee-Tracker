@@ -4,69 +4,39 @@
 <meta charset="UTF-8">
 <title>تسجيل حضور الموظفين</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f2f5;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-    }
-    .card {
-        background-color: white;
-        padding: 30px 40px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        text-align: center;
-        width: 320px;
-    }
-    .card h2 {
-        margin-bottom: 25px;
-        color: #333;
-    }
-    input[type="text"] {
-        padding: 10px;
-        width: 100%;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
-    button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        background-color: #007bff;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    #status {
-        margin-top: 20px;
-        font-weight: bold;
-        color: green;
-        white-space: pre-line;
-    }
+/* نفس الستايل */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.card {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 320px;
+}
 </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>تسجيل حضور الموظفين</h2>
-    <input id="empId" type="text" placeholder="ادخل رقم ID">
-    <button onclick="sendLocation()">احصل على موقعى الحالى</button>
-    <p id="status"></p>
+<h2>تسجيل حضور الموظفين</h2>
+<input id="empId" type="text" placeholder="ادخل رقم ID">
+<button onclick="sendLocation()">احصل على موقعى الحالى</button>
+<p id="status"></p>
 </div>
 
 <script>
-// بصمة الجهاز (Device Fingerprint)
+// =====================
+// Device Fingerprint
+// =====================
 function getDeviceId() {
     return btoa(
         navigator.userAgent +
@@ -76,100 +46,82 @@ function getDeviceId() {
     );
 }
 
+// =====================
+// تحديد مراكز المنيا بالإحداثيات
+// =====================
+function getMinyaDistrict(lat, lng) {
+
+    if (lat > 27.85 && lat < 28.05 && lng > 30.75 && lng < 31.00) {
+        return "أبو قرقاص";
+    }
+
+    if (lat > 27.60 && lat < 27.85 && lng > 30.60 && lng < 30.95) {
+        return "ملوى";
+    }
+
+    if (lat > 28.00 && lat < 28.20 && lng > 30.70 && lng < 31.00) {
+        return "المنيا";
+    }
+
+    if (lat > 28.20 && lat < 28.60) {
+        return "سمالوط";
+    }
+
+    return null;
+}
+
 function sendLocation() {
+
     var id = document.getElementById("empId").value;
-    if (!id) {
-        document.getElementById("status").innerText = "من فضلك أدخل رقم ID";
-        return;
-    }
+    if (!id) return alert("ادخل ID");
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(success, error, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        });
-    } else {
-        alert("المتصفح لا يدعم تحديد الموقع.");
-    }
+    navigator.geolocation.getCurrentPosition(function(pos){
 
-    function success(pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // 🔹 نفس آلية تحديد القرية / المركز / المحافظة
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
+
             var addr = data.address;
 
-            // القرية كما هي
+            // القرية (زي ما هي)
             var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
 
-            // تعديل ترتيب اختيار المركز/المدينة
-            var district =
-                addr.city_district ||
-                addr.municipality ||
-                addr.state_district ||
-                addr.county ||
-                addr.city ||
-                "غير معروف";
+            var state = addr.state || "غير معروف";
 
-            var state = addr.state || addr.region || "غير معروف";
+            var district = "غير معروف";
 
-            // استثناء خاص بالمنيا / ملوى (حسب Lat/Lng)
+            // 🔥 فرض المركز من الإحداثيات
             if (state === "المنيا") {
-                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
-                    district = "ملوى";
-                    if (village === "غير معروف" || village.includes("قسم") || village.includes("غير")) {
-                        village = "ملوى";
-                    }
-                }
+                district = getMinyaDistrict(lat, lng) || district;
             }
 
             var location = village + " – " + district + " – " + state;
 
-            // 🔹 جلب الـ IP
             fetch("https://api.ipify.org?format=json")
             .then(res => res.json())
             .then(ipData => {
 
-                var deviceId = getDeviceId();
-                var ip = ipData.ip;
-
-                // 🔹 إرسال البيانات للـ Google Sheet الجديد
                 fetch("https://script.google.com/macros/s/AKfycbwNd3X39-4xx3h6GL2TsDMUl0ow4euvboatrsUTKI_oqueb_oorC5Vn1EEPEkctkpJqvw/exec", {
                     method: "POST",
                     body: new URLSearchParams({
-                        "id": id,
-                        "location": location,
-                        "lat": lat,
-                        "lng": lng,
-                        "location_link": "https://www.google.com/maps?q=" + lat + "," + lng,
-                        "ip": ip,
-                        "device_id": deviceId
+                        id,
+                        location,
+                        lat,
+                        lng,
+                        location_link: `https://www.google.com/maps?q=${lat},${lng}`,
+                        ip: ipData.ip,
+                        device_id: getDeviceId()
                     })
                 });
 
-                var now = new Date();
-                var date = now.getFullYear() + "-" +
-                           (now.getMonth()+1).toString().padStart(2,"0") + "-" +
-                           now.getDate().toString().padStart(2,"0");
-                var time = now.getHours().toString().padStart(2,"0") + ":" +
-                           now.getMinutes().toString().padStart(2,"0") + ":" +
-                           now.getSeconds().toString().padStart(2,"0");
-
                 document.getElementById("status").innerText =
-                    "تم تسجيل الموقع بنجاح ✔\n" +
-                    location + "\n" +
-                    date + " " + time;
+                    "تم التسجيل ✔\n" + location;
             });
         });
-    }
-
-    function error() {
-        alert("تعذر الحصول على الموقع.");
-    }
+    });
 }
 </script>
 
