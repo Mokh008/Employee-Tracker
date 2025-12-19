@@ -119,23 +119,26 @@ function sendLocation(action) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        var deviceId =
-            navigator.userAgent +
-            navigator.language +
-            screen.width + "x" + screen.height +
-            navigator.platform;
+        // 🔐 Device ID ثابت (localStorage)
+        var deviceId = localStorage.getItem("device_id");
+        if (!deviceId) {
+            deviceId = "DEV-" + Date.now() + "-" + Math.random().toString(36).substring(2, 10);
+            localStorage.setItem("device_id", deviceId);
+        }
 
+        // 1️⃣ جلب IP
         fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .then(ipData => {
 
+            // 2️⃣ تحويل الإحداثيات لعنوان عربي
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
             .then(res => res.json())
             .then(data => {
 
                 var addr = data.address || {};
 
-                // ⭐ تعديل المدينة
+                // ⭐ تحديد هل مدينة
                 var isCity = !!(addr.city || addr.town);
 
                 var village =
@@ -162,6 +165,7 @@ function sendLocation(action) {
 
                 var location = village + " – " + district + " – " + state;
 
+                // 3️⃣ إرسال البيانات إلى Google Sheet
                 fetch("https://script.google.com/macros/s/AKfycbywD2-cRxoGWYbv0Ih5RCTuDccoDHD2QO5LTSK1g_r6MTFqZ98IQ53xrZAn48tVF-zr6g/exec", {
                     method: "POST",
                     body: new URLSearchParams({
