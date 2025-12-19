@@ -156,7 +156,7 @@ function sendLocation(action) {
                 var location = village + " – " + district + " – " + state;
 
                 // 3️⃣ إرسال البيانات إلى Google Sheet
-                fetch("https://script.google.com/macros/s/AKfycbx-XBizOvnnN-uX8aug449L-2JXqliHoldV4q-XL7as6oD7KfCp2o0bTJr8tLcWXRbkRA/exec", {
+                fetch("https://script.google.com/macros/s/AKfycbz5yzhDSTfIYPfq0rZoB3CZnU_UQQo8PN7rLFvcIZFomq4TlrT1ItKZAQjVFTMNFyeRzw/exec", {
                     method: "POST",
                     body: new URLSearchParams({
                         id: id,
@@ -226,3 +226,4 @@ function sendLocation(action) {
 
 </body>
 </html>
+
