@@ -108,79 +108,85 @@ function sendLocation(action) {
             screen.width + "x" + screen.height +
             navigator.platform;
 
-        // تحويل الإحداثيات لعنوان عربي
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
+        // 1️⃣ نجيب الـ IP الأول
+        fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
-        .then(data => {
-            var addr = data.address || {};
+        .then(ipData => {
 
-            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
-            var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
-            var state = addr.state || addr.region || "غير معروف";
+            // 2️⃣ نحول الإحداثيات لعنوان عربي
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
+            .then(res => res.json())
+            .then(data => {
+                var addr = data.address || {};
 
-            // تصحيح ملوى
-            if (state === "المنيا") {
-                if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
-                    district = "ملوى";
-                    if (village === "غير معروف" || village.includes("قسم")) {
-                        village = "ملوى";
+                var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+                var district = addr.county || addr.suburb || addr.municipality || "غير معروف";
+                var state = addr.state || addr.region || "غير معروف";
+
+                // تصحيح ملوى
+                if (state === "المنيا") {
+                    if (lat > 27.6 && lat < 28.4 && lng > 30.6 && lng < 30.95) {
+                        district = "ملوى";
+                        if (village === "غير معروف" || village.includes("قسم")) {
+                            village = "ملوى";
+                        }
                     }
                 }
-            }
 
-            var location = village + " – " + district + " – " + state;
+                var location = village + " – " + district + " – " + state;
 
-            // إرسال البيانات إلى Google Sheet
-            fetch("https://script.google.com/macros/s/AKfycbx-XBizOvnnN-uX8aug449L-2JXqliHoldV4q-XL7as6oD7KfCp2o0bTJr8tLcWXRbkRA/exec", {
-                method: "POST",
-                body: new URLSearchParams({
-                    id: id,
-                    location: location,
-                    lat: lat,
-                    lng: lng,
-                    location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
-                    device_id: deviceId,
-                    ip: "",
-                    action: action
+                // 3️⃣ إرسال البيانات لـ Google Sheet
+                fetch("https://script.google.com/macros/s/AKfycbx-XBizOvnnN-uX8aug449L-2JXqliHoldV4q-XL7as6oD7KfCp2o0bTJr8tLcWXRbkRA/exec", {
+                    method: "POST",
+                    body: new URLSearchParams({
+                        id: id,
+                        location: location,
+                        lat: lat,
+                        lng: lng,
+                        location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
+                        device_id: deviceId,
+                        ip: ipData.ip,
+                        action: action
+                    })
                 })
-            })
-            .then(res => res.text())
-            .then(result => {
+                .then(res => res.text())
+                .then(result => {
 
-                // ❌ رسائل الرفض
-                if (result.startsWith("ERROR")) {
-                    statusEl.style.color = "red";
+                    // ❌ رسائل الرفض
+                    if (result.startsWith("ERROR")) {
+                        statusEl.style.color = "red";
 
-                    if (result.includes("OUT")) {
-                        statusEl.innerText =
-                          "⚠️ لا يمكن تسجيل الخروج قبل تسجيل الدخول";
-                    } else if (result.includes("IN")) {
-                        statusEl.innerText =
-                          "⚠️ تم تسجيل الدخول بالفعل ولا يمكن تسجيله مرتين";
-                    } else {
-                        statusEl.innerText = "⚠️ العملية غير مسموحة";
+                        if (result.includes("OUT")) {
+                            statusEl.innerText =
+                              "⚠️ لا يمكن تسجيل الخروج قبل تسجيل الدخول";
+                        } else if (result.includes("IN")) {
+                            statusEl.innerText =
+                              "⚠️ تم تسجيل الدخول بالفعل ولا يمكن تسجيله مرتين";
+                        } else {
+                            statusEl.innerText = "⚠️ العملية غير مسموحة";
+                        }
+                        return;
                     }
-                    return;
-                }
 
-                // ✅ نجاح
-                statusEl.style.color = "green";
+                    // ✅ تسجيل ناجح
+                    statusEl.style.color = "green";
 
-                var now = new Date();
-                var date =
-                    now.getFullYear() + "-" +
-                    (now.getMonth()+1).toString().padStart(2,"0") + "-" +
-                    now.getDate().toString().padStart(2,"0");
+                    var now = new Date();
+                    var date =
+                        now.getFullYear() + "-" +
+                        (now.getMonth()+1).toString().padStart(2,"0") + "-" +
+                        now.getDate().toString().padStart(2,"0");
 
-                var time =
-                    now.getHours().toString().padStart(2,"0") + ":" +
-                    now.getMinutes().toString().padStart(2,"0") + ":" +
-                    now.getSeconds().toString().padStart(2,"0");
+                    var time =
+                        now.getHours().toString().padStart(2,"0") + ":" +
+                        now.getMinutes().toString().padStart(2,"0") + ":" +
+                        now.getSeconds().toString().padStart(2,"0");
 
-                statusEl.innerText =
-                    "✅ تم تسجيل البصمة بنجاح\n" +
-                    location + "\n" +
-                    date + " " + time;
+                    statusEl.innerText =
+                        "✅ تم تسجيل البصمة بنجاح\n" +
+                        location + "\n" +
+                        date + " " + time;
+                });
             });
         });
     }
