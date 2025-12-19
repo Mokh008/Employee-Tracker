@@ -96,7 +96,6 @@ function sendLocation(action) {
         return;
     }
 
-    // قفل الأزرار + Loader
     inBtn.disabled = true;
     outBtn.disabled = true;
     loader.style.display = "block";
@@ -120,25 +119,32 @@ function sendLocation(action) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // بصمة الجهاز
         var deviceId =
             navigator.userAgent +
             navigator.language +
             screen.width + "x" + screen.height +
             navigator.platform;
 
-        // 1️⃣ جلب IP
         fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .then(ipData => {
 
-            // 2️⃣ تحويل الإحداثيات لعنوان عربي
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
             .then(res => res.json())
             .then(data => {
 
                 var addr = data.address || {};
-                var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+
+                // ⭐ تعديل المدينة
+                var isCity = !!(addr.city || addr.town);
+
+                var village =
+                    addr.village ||
+                    addr.hamlet ||
+                    addr.town ||
+                    addr.city ||
+                    "غير معروف";
+
                 var district =
                     addr.municipality ||
                     addr.county ||
@@ -146,11 +152,16 @@ function sendLocation(action) {
                     addr.suburb ||
                     addr.city ||
                     "غير معروف";
+
                 var state = addr.state || addr.region || "غير معروف";
+
+                // ⭐ لو مدينة → مدينة - مدينة - محافظة
+                if (isCity && village !== "غير معروف") {
+                    district = village;
+                }
 
                 var location = village + " – " + district + " – " + state;
 
-                // 3️⃣ إرسال البيانات إلى Google Sheet
                 fetch("https://script.google.com/macros/s/AKfycbywD2-cRxoGWYbv0Ih5RCTuDccoDHD2QO5LTSK1g_r6MTFqZ98IQ53xrZAn48tVF-zr6g/exec", {
                     method: "POST",
                     body: new URLSearchParams({
@@ -171,26 +182,21 @@ function sendLocation(action) {
                     inBtn.disabled = false;
                     outBtn.disabled = false;
 
-                    // ❌ أخطاء
                     if (result.startsWith("ERROR")) {
                         statusEl.style.color = "red";
 
                         if (result.includes("OUT")) {
-                            statusEl.innerText =
-                              "⚠️ لا يمكن تسجيل الخروج قبل تسجيل الدخول";
+                            statusEl.innerText = "⚠️ لا يمكن تسجيل الخروج قبل تسجيل الدخول";
                         } else if (result.includes("IN")) {
-                            statusEl.innerText =
-                              "⚠️ تم تسجيل الدخول بالفعل ولا يمكن تسجيله مرتين";
+                            statusEl.innerText = "⚠️ تم تسجيل الدخول بالفعل ولا يمكن تسجيله مرتين";
                         } else {
                             statusEl.innerText = "⚠️ العملية غير مسموحة";
                         }
                         return;
                     }
 
-                    // ✅ نجاح
                     statusEl.style.color = "green";
 
-                    // استلام الموقع المصحّح من Google Sheet
                     var parts = result.split("|");
                     var finalLocation = parts.length > 1 ? parts[1] : location;
 
@@ -225,5 +231,3 @@ function sendLocation(action) {
 
 </body>
 </html>
-
-
