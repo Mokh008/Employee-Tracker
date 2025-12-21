@@ -82,7 +82,32 @@ button:disabled {
 </div>
 
 <script>
+// ===============================
+// 🔐 قراءة Android ID من الرابط
+// ===============================
+const params = new URLSearchParams(window.location.search);
+const androidIdFromApp = params.get("aid") || "";
+
+// لو الموقع اتفتح من غير التطبيق
+if (!androidIdFromApp) {
+    document.body.innerHTML = `
+        <div style="text-align:center;font-family:Arial">
+            <h2>❌ غير مسموح بالدخول</h2>
+            <p>من فضلك استخدم تطبيق الشركة لتسجيل الحضور</p>
+        </div>
+    `;
+}
+
+// ===============================
+// 📍 إرسال البصمة
+// ===============================
 function sendLocation(action) {
+
+    // 🔴 منع أي محاولة بدون App
+    if (!androidIdFromApp) {
+        alert("❌ الدخول مسموح من التطبيق فقط");
+        return;
+    }
 
     var id = document.getElementById("empId").value;
     var statusEl = document.getElementById("status");
@@ -119,53 +144,27 @@ function sendLocation(action) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
 
-        // 🔐 Device ID ثابت (localStorage)
         var deviceId = localStorage.getItem("device_id");
         if (!deviceId) {
             deviceId = "DEV-" + Date.now() + "-" + Math.random().toString(36).substring(2, 10);
             localStorage.setItem("device_id", deviceId);
         }
 
-        // 1️⃣ جلب IP
         fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .then(ipData => {
 
-            // 2️⃣ تحويل الإحداثيات لعنوان عربي
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
             .then(res => res.json())
             .then(data => {
 
                 var addr = data.address || {};
-
-                // ⭐ تحديد هل مدينة
-                var isCity = !!(addr.city || addr.town);
-
-                var village =
-                    addr.village ||
-                    addr.hamlet ||
-                    addr.town ||
-                    addr.city ||
-                    "غير معروف";
-
-                var district =
-                    addr.municipality ||
-                    addr.county ||
-                    addr.city_district ||
-                    addr.suburb ||
-                    addr.city ||
-                    "غير معروف";
-
-                var state = addr.state || addr.region || "غير معروف";
-
-                // ⭐ لو مدينة → مدينة - مدينة - محافظة
-                if (isCity && village !== "غير معروف") {
-                    district = village;
-                }
+                var village = addr.village || addr.town || addr.city || "غير معروف";
+                var district = addr.county || addr.city || "غير معروف";
+                var state = addr.state || "غير معروف";
 
                 var location = village + " – " + district + " – " + state;
 
-                // 3️⃣ إرسال البيانات إلى Google Sheet
                 fetch("https://script.google.com/macros/s/AKfycbywD2-cRxoGWYbv0Ih5RCTuDccoDHD2QO5LTSK1g_r6MTFqZ98IQ53xrZAn48tVF-zr6g/exec", {
                     method: "POST",
                     body: new URLSearchParams({
@@ -176,49 +175,18 @@ function sendLocation(action) {
                         location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
                         device_id: deviceId,
                         ip: ipData.ip,
+                        android_id: androidIdFromApp, // 🔐 مهم
                         action: action
                     })
                 })
                 .then(res => res.text())
                 .then(result => {
-
                     loader.style.display = "none";
                     inBtn.disabled = false;
                     outBtn.disabled = false;
-
-                    if (result.startsWith("ERROR")) {
-                        statusEl.style.color = "red";
-
-                        if (result.includes("OUT")) {
-                            statusEl.innerText = "⚠️ لا يمكن تسجيل الخروج قبل تسجيل الدخول";
-                        } else if (result.includes("IN")) {
-                            statusEl.innerText = "⚠️ تم تسجيل الدخول بالفعل ولا يمكن تسجيله مرتين";
-                        } else {
-                            statusEl.innerText = "⚠️ العملية غير مسموحة";
-                        }
-                        return;
-                    }
-
-                    statusEl.style.color = "green";
-
-                    var parts = result.split("|");
-                    var finalLocation = parts.length > 1 ? parts[1] : location;
-
-                    var now = new Date();
-                    var date =
-                        now.getFullYear() + "-" +
-                        (now.getMonth()+1).toString().padStart(2,"0") + "-" +
-                        now.getDate().toString().padStart(2,"0");
-
-                    var time =
-                        now.getHours().toString().padStart(2,"0") + ":" +
-                        now.getMinutes().toString().padStart(2,"0") + ":" +
-                        now.getSeconds().toString().padStart(2,"0");
-
-                    statusEl.innerText =
-                        "✅ تم تسجيل البصمة بنجاح\n" +
-                        finalLocation + "\n" +
-                        date + " " + time;
+                    statusEl.innerText = result.startsWith("ERROR")
+                        ? "❌ العملية غير مسموحة"
+                        : "✅ تم تسجيل البصمة بنجاح";
                 });
             });
         });
