@@ -39,7 +39,7 @@ button {
     padding: 12px;
     border: none;
     border-radius: 8px;
-    background-color: #28a745;
+    background-color: #007bff;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -83,12 +83,12 @@ button:disabled {
 
 <script>
 // ===============================
-// 🔐 Android ID جاي من التطبيق
+// 🔐 Android ID من التطبيق
 // ===============================
 const params = new URLSearchParams(window.location.search);
 const androidIdFromApp = params.get("aid") || "";
 
-// منع فتح الموقع من غير التطبيق
+// منع فتح الموقع بدون App
 if (!androidIdFromApp) {
     document.body.innerHTML = `
         <div style="text-align:center;font-family:Arial">
@@ -125,6 +125,14 @@ function sendLocation(action) {
     loader.style.display = "block";
     statusEl.innerText = "";
 
+    if (!navigator.geolocation) {
+        alert("المتصفح لا يدعم تحديد الموقع.");
+        loader.style.display = "none";
+        inBtn.disabled = false;
+        outBtn.disabled = false;
+        return;
+    }
+
     navigator.geolocation.getCurrentPosition(success, error, {
         enableHighAccuracy: true,
         timeout: 5000,
@@ -141,9 +149,6 @@ function sendLocation(action) {
 
             var addr = data.address || {};
 
-            // =================================================
-            // ✅ القرية = أقرب اسم مكان فعلي (الآلية القديمة)
-            // =================================================
             var village =
                 addr.village ||
                 addr.hamlet ||
@@ -151,35 +156,18 @@ function sendLocation(action) {
                 addr.city ||
                 "غير معروف";
 
-            // =================================================
-            // ✅ المركز / المدينة (محسّن)
-            // =================================================
             var district =
-                addr.municipality ||
                 addr.county ||
-                addr.city_district ||
-                addr.suburb ||
-                addr.town ||
                 addr.city ||
-                village ||
                 "غير معروف";
 
-            // =================================================
-            // المحافظة
-            // =================================================
             var state =
                 addr.state ||
-                addr.region ||
                 "غير معروف";
-
-            // لو المركز = المحافظة → خلّيه زي القرية
-            if (district === state) {
-                district = village;
-            }
 
             var location = village + " – " + district + " – " + state;
 
-            fetch("https://script.google.com/macros/s/AKfycbzW1f3tex4FPcFP0piV_Kesr1dE3xZ5upAIZhDVE864TmT6Iz-1E_h6UR4jMj2dDZtZ7w/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbz8Tb1-C6SjYFPVO4tPQE9PeNsgKiFs22lL3876bUdReF_w9A_adMnCSCnLz0ckspfveA/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     id: id,
