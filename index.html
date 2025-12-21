@@ -125,14 +125,6 @@ function sendLocation(action) {
     loader.style.display = "block";
     statusEl.innerText = "";
 
-    if (!navigator.geolocation) {
-        alert("المتصفح لا يدعم تحديد الموقع.");
-        loader.style.display = "none";
-        inBtn.disabled = false;
-        outBtn.disabled = false;
-        return;
-    }
-
     navigator.geolocation.getCurrentPosition(success, error, {
         enableHighAccuracy: true,
         timeout: 5000,
@@ -149,6 +141,10 @@ function sendLocation(action) {
 
             var addr = data.address || {};
 
+            // ✅ تحديد هل مدينة
+            var isCity = !!(addr.city || addr.town);
+
+            // ✅ القرية / أقرب اسم محلي
             var village =
                 addr.village ||
                 addr.hamlet ||
@@ -156,14 +152,25 @@ function sendLocation(action) {
                 addr.city ||
                 "غير معروف";
 
+            // ✅ المركز / المدينة / الحي
             var district =
+                addr.municipality ||
                 addr.county ||
+                addr.city_district ||
+                addr.suburb ||
                 addr.city ||
                 "غير معروف";
 
+            // ✅ المحافظة
             var state =
                 addr.state ||
+                addr.region ||
                 "غير معروف";
+
+            // ✅ تصحيح المدن (مدينة – مدينة – محافظة)
+            if (isCity && village !== "غير معروف") {
+                district = village;
+            }
 
             var location = village + " – " + district + " – " + state;
 
@@ -227,4 +234,3 @@ function sendLocation(action) {
 
 </body>
 </html>
-
