@@ -39,7 +39,7 @@ button {
     padding: 12px;
     border: none;
     border-radius: 8px;
-    background-color: #007bff;
+    background-color: #28a745;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -149,6 +149,7 @@ function sendLocation(action) {
 
             var addr = data.address || {};
 
+            // ===== القرية =====
             var village =
                 addr.village ||
                 addr.hamlet ||
@@ -156,18 +157,31 @@ function sendLocation(action) {
                 addr.city ||
                 "غير معروف";
 
+            // ===== المركز / المدينة (منطق ذكي) =====
             var district =
+                addr.municipality ||
                 addr.county ||
+                addr.city_district ||
+                addr.suburb ||
+                addr.town ||
                 addr.city ||
+                village ||
                 "غير معروف";
 
+            // ===== المحافظة =====
             var state =
                 addr.state ||
+                addr.region ||
                 "غير معروف";
+
+            // لو المركز = المحافظة → اعتبره قرية
+            if (district === state) {
+                district = village;
+            }
 
             var location = village + " – " + district + " – " + state;
 
-            fetch("https://script.google.com/macros/s/AKfycbz8Tb1-C6SjYFPVO4tPQE9PeNsgKiFs22lL3876bUdReF_w9A_adMnCSCnLz0ckspfveA/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbzW1f3tex4FPcFP0piV_Kesr1dE3xZ5upAIZhDVE864TmT6Iz-1E_h6UR4jMj2dDZtZ7w/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     id: id,
