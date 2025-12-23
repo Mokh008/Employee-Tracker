@@ -4,13 +4,9 @@
 <meta charset="UTF-8">
 <title>MK Attendance</title>
 
-<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===============================
-   🌙 GLOBAL
-=============================== */
 body {
     font-family: 'Cairo', sans-serif;
     background: linear-gradient(135deg, #0f172a, #020617);
@@ -22,9 +18,6 @@ body {
     color: #e5e7eb;
 }
 
-/* ===============================
-   🧾 CARD
-=============================== */
 .card {
     background: #111827;
     padding: 36px 38px 34px;
@@ -32,88 +25,55 @@ body {
     box-shadow: 0 30px 70px rgba(0,0,0,0.65);
     text-align: center;
     width: 380px;
-    animation: fadeIn 0.4s ease;
-    transition: box-shadow 0.3s ease;
+    transition: 0.3s;
 }
 
 .card.success {
-    box-shadow: 0 0 0 2px #22c55e, 0 30px 70px rgba(34,197,94,0.45);
+    box-shadow: 0 0 0 2px #22c55e, 0 0 40px rgba(34,197,94,0.6);
+    animation: pop 0.6s;
 }
 
 .card.error {
-    box-shadow: 0 0 0 2px #ef4444, 0 30px 70px rgba(239,68,68,0.45);
+    box-shadow: 0 0 0 2px #ef4444, 0 0 40px rgba(239,68,68,0.6);
+    animation: shake 0.4s;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-6px); }
+    100% { transform: translateX(0); }
 }
 
-/* ===============================
-   🏢 LOGO
-=============================== */
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
 .logo {
     width: 230px;
-    max-width: 100%;
-    display: block;
-    margin: 0 auto 18px;
-    background: #111827;
-    padding: 14px;
-    border-radius: 20px;
-    box-shadow: 0 12px 26px rgba(0,0,0,0.7);
+    margin-bottom: 18px;
 }
 
-/* ===============================
-   📡 GPS STATUS
-=============================== */
-.gps-status {
-    font-size: 14px;
-    margin-bottom: 14px;
-    color: #9ca3af;
-}
-
-.gps-status.active {
-    color: #22c55e;
-}
-
-/* ===============================
-   📍 LOCATION ICON
-=============================== */
-.location-icon {
-    font-size: 30px;
+.icon {
+    font-size: 32px;
     margin-bottom: 16px;
-    animation: pulse 1.6s infinite;
 }
 
-@keyframes pulse {
-    0%   { transform: scale(1); opacity: 1; }
-    50%  { transform: scale(1.18); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-/* ===============================
-   🔢 INPUT
-=============================== */
-input[type="text"] {
+input {
     width: 100%;
     padding: 15px;
-    margin: 18px 0 24px;
     border-radius: 16px;
     border: none;
-    outline: none;
     background: #020617;
-    color: #f9fafb;
-    font-size: 16px;
+    color: white;
     text-align: center;
+    font-size: 16px;
+    margin-bottom: 22px;
 }
 
-input::placeholder {
-    color: #9ca3af;
-}
-
-/* ===============================
-   🔘 BUTTONS
-=============================== */
 button {
     width: 100%;
     padding: 16px;
@@ -122,16 +82,6 @@ button {
     font-size: 17px;
     font-weight: 700;
     cursor: pointer;
-    transition: 0.2s ease;
-}
-
-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
 }
 
 #inBtn {
@@ -145,45 +95,22 @@ button:disabled {
     color: white;
 }
 
-/* ===============================
-   📢 STATUS
-=============================== */
 #status {
     margin-top: 20px;
     font-size: 15px;
     white-space: pre-line;
 }
 
-/* ===============================
-   ⏳ LOADER
-=============================== */
 #loader {
     display: none;
-    margin-top: 16px;
+    margin-top: 14px;
     font-size: 14px;
-    color: #cbd5f5;
 }
 
-/* ===============================
-   📌 FOOTER
-=============================== */
 .footer {
-    margin-top: 20px;
+    margin-top: 18px;
     font-size: 12px;
     color: #6b7280;
-}
-
-/* ===============================
-   📱 MOBILE
-=============================== */
-@media (max-width: 480px) {
-    .card {
-        width: 94%;
-        padding: 32px 26px 32px;
-    }
-    .logo {
-        width: 260px;
-    }
 }
 </style>
 </head>
@@ -194,16 +121,14 @@ button:disabled {
 
     <img src="MK.Attendance.png" class="logo">
 
-    <div class="gps-status" id="gpsStatus">📡 GPS Checking...</div>
-
-    <div class="location-icon">📍</div>
+    <div class="icon" id="icon">📍</div>
 
     <input id="empId" type="text" placeholder="أدخل رقم الموظف (ID)">
 
     <button id="inBtn" onclick="sendLocation('IN')">✔️ بصمة دخول</button>
     <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">🚪 بصمة خروج</button>
 
-    <p id="status"></p>
+    <div id="status"></div>
     <div id="loader">⏳ جاري تسجيل البصمة…</div>
 
     <div class="footer">© MK Attendance System</div>
@@ -214,37 +139,93 @@ const params = new URLSearchParams(window.location.search);
 const androidIdFromApp = params.get("aid") || "";
 
 if (!androidIdFromApp) {
-    document.body.innerHTML = `
-        <div style="text-align:center;color:white">
-            <h2>❌ غير مسموح بالدخول</h2>
-            <p>استخدم تطبيق الشركة</p>
-        </div>
-    `;
+    document.body.innerHTML = "<h2 style='color:white'>❌ الدخول من التطبيق فقط</h2>";
 }
 
-// GPS Status check
-navigator.geolocation.getCurrentPosition(
-    () => document.getElementById("gpsStatus").classList.add("active"),
-    () => document.getElementById("gpsStatus").innerText = "⛔ GPS غير متاح"
-);
+function resetUI() {
+    document.getElementById("card").classList.remove("success","error");
+    document.getElementById("icon").innerText = "📍";
+}
 
 function sendLocation(action) {
 
-    var card = document.getElementById("card");
-    card.classList.remove("success","error");
+    resetUI();
 
-    var statusEl = document.getElementById("status");
-    var loader = document.getElementById("loader");
+    const id = document.getElementById("empId").value;
+    const statusEl = document.getElementById("status");
+    const loader = document.getElementById("loader");
+    const card = document.getElementById("card");
+    const icon = document.getElementById("icon");
+
+    if (!id) {
+        statusEl.style.color = "#ef4444";
+        statusEl.innerText = "⚠️ من فضلك أدخل رقم ID";
+        return;
+    }
 
     loader.style.display = "block";
     statusEl.innerText = "";
 
-    setTimeout(() => {
+    navigator.geolocation.getCurrentPosition(success, error, {
+        enableHighAccuracy: true,
+        timeout: 5000
+    });
+
+    function success(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
+        .then(res => res.json())
+        .then(data => {
+
+            const addr = data.address || {};
+            const village = addr.village || addr.town || addr.city || "غير معروف";
+            const district = addr.county || addr.city || "غير معروف";
+            const state = addr.state || "غير معروف";
+
+            const location = village + " – " + district + " – " + state;
+
+            return fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
+                method: "POST",
+                body: new URLSearchParams({
+                    id,
+                    location,
+                    lat,
+                    lng,
+                    location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
+                    android_id: androidIdFromApp,
+                    action
+                })
+            });
+        })
+        .then(res => res.text())
+        .then(result => {
+
+            loader.style.display = "none";
+
+            if (result.startsWith("ERROR")) {
+                card.classList.add("error");
+                icon.innerText = "❌";
+                statusEl.style.color = "#ef4444";
+                statusEl.innerText = "❌ العملية غير مسموحة";
+                return;
+            }
+
+            card.classList.add("success");
+            icon.innerText = "✔️";
+            statusEl.style.color = "#22c55e";
+            statusEl.innerText = "✅ تم تسجيل البصمة بنجاح";
+        });
+    }
+
+    function error() {
         loader.style.display = "none";
-        card.classList.add("success");
-        statusEl.style.color = "#22c55e";
-        statusEl.innerText = "✅ تم تسجيل البصمة بنجاح";
-    }, 1200);
+        card.classList.add("error");
+        icon.innerText = "❌";
+        statusEl.style.color = "#ef4444";
+        statusEl.innerText = "تعذر الحصول على الموقع";
+    }
 }
 </script>
 
