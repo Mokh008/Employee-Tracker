@@ -2,66 +2,146 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>تسجيل حضور الموظفين</title>
+<title>MK Attendance Tracker</title>
 
 <style>
+/* ===============================
+   🌙 DARK MODE – GLOBAL
+=============================== */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    color: #e5e7eb;
 }
+
+/* ===============================
+   🧾 CARD
+=============================== */
 .card {
-    background-color: white;
-    padding: 30px 40px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background: #111827;
+    padding: 30px 35px 35px;
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
     text-align: center;
-    width: 320px;
+    width: 360px;
+    animation: fadeIn 0.5s ease;
 }
-.card h2 {
-    margin-bottom: 25px;
-    color: #333;
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ===============================
+   🏢 LOGO
+=============================== */
+.logo {
+    width: 120px;
+    margin-bottom: 15px;
+}
+
+/* ===============================
+   📍 LOCATION ICON
+=============================== */
+.location-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===============================
+   🔢 INPUT
+=============================== */
 input[type="text"] {
-    padding: 10px;
     width: 100%;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
+    padding: 13px;
+    margin: 20px 0 22px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    background: #020617;
+    color: #f9fafb;
+    font-size: 15px;
+    text-align: center;
 }
+
+input::placeholder {
+    color: #9ca3af;
+}
+
+/* ===============================
+   🔘 BUTTONS
+=============================== */
 button {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
+    border-radius: 12px;
     border: none;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: white;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+    transition: 0.2s ease;
 }
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
-.out-btn {
-    background-color: #dc3545;
+
+#inBtn {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: white;
 }
+
+.out-btn {
+    margin-top: 12px;
+    background: linear-gradient(135deg, #b91c1c, #ef4444);
+    color: white;
+}
+
+/* ===============================
+   📢 STATUS
+=============================== */
 #status {
-    margin-top: 15px;
-    font-weight: bold;
+    margin-top: 18px;
+    font-size: 14px;
     white-space: pre-line;
 }
+
+/* ===============================
+   ⏳ LOADER
+=============================== */
 #loader {
     display: none;
     margin-top: 15px;
-    font-weight: bold;
-    color: #555;
+    font-size: 14px;
+    color: #cbd5f5;
+}
+
+/* ===============================
+   📱 MOBILE
+=============================== */
+@media (max-width: 420px) {
+    .card {
+        width: 92%;
+        padding: 28px 22px 30px;
+    }
 }
 </style>
 </head>
@@ -69,16 +149,21 @@ button:disabled {
 <body>
 
 <div class="card">
-    <h2>تسجيل حضور الموظفين</h2>
 
-    <input id="empId" type="text" placeholder="ادخل رقم ID">
+    <!-- LOGO -->
+    <img src="MK.Attendance.png" class="logo" alt="MK Attendance Logo">
 
-    <button id="inBtn" onclick="sendLocation('IN')">بصمة دخول ⏰</button>
-    <br><br>
-    <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">بصمة خروج 🚪</button>
+    <!-- LOCATION ICON -->
+    <div class="location-icon">📍</div>
+
+    <input id="empId" type="text" placeholder="أدخل رقم الموظف (ID)">
+
+    <button id="inBtn" onclick="sendLocation('IN')">✔️ بصمة دخول</button>
+    <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">🚪 بصمة خروج</button>
 
     <p id="status"></p>
-    <div id="loader">⏳ برجاء الانتظار… جاري تسجيل البصمة</div>
+    <div id="loader">⏳ جاري تسجيل البصمة…</div>
+
 </div>
 
 <script>
@@ -91,7 +176,7 @@ const androidIdFromApp = params.get("aid") || "";
 // منع فتح الموقع بدون App
 if (!androidIdFromApp) {
     document.body.innerHTML = `
-        <div style="text-align:center;font-family:Arial">
+        <div style="text-align:center;color:white;font-family:Arial">
             <h2>❌ غير مسموح بالدخول</h2>
             <p>من فضلك استخدم تطبيق الشركة لتسجيل الحضور</p>
         </div>
@@ -115,7 +200,7 @@ function sendLocation(action) {
     var outBtn = document.getElementById("outBtn");
 
     if (!id) {
-        statusEl.style.color = "red";
+        statusEl.style.color = "#ef4444";
         statusEl.innerText = "⚠️ من فضلك أدخل رقم ID";
         return;
     }
@@ -140,11 +225,8 @@ function sendLocation(action) {
         .then(data => {
 
             var addr = data.address || {};
-
-            // ✅ تحديد هل مدينة
             var isCity = !!(addr.city || addr.town);
 
-            // ✅ القرية / أقرب اسم محلي
             var village =
                 addr.village ||
                 addr.hamlet ||
@@ -152,7 +234,6 @@ function sendLocation(action) {
                 addr.city ||
                 "غير معروف";
 
-            // ✅ المركز / المدينة / الحي
             var district =
                 addr.municipality ||
                 addr.county ||
@@ -161,13 +242,11 @@ function sendLocation(action) {
                 addr.city ||
                 "غير معروف";
 
-            // ✅ المحافظة
             var state =
                 addr.state ||
                 addr.region ||
                 "غير معروف";
 
-            // ✅ تصحيح المدن (مدينة – مدينة – محافظة)
             if (isCity && village !== "غير معروف") {
                 district = village;
             }
@@ -194,12 +273,12 @@ function sendLocation(action) {
                 outBtn.disabled = false;
 
                 if (result.startsWith("ERROR")) {
-                    statusEl.style.color = "red";
+                    statusEl.style.color = "#ef4444";
                     statusEl.innerText = "❌ العملية غير مسموحة";
                     return;
                 }
 
-                statusEl.style.color = "green";
+                statusEl.style.color = "#22c55e";
 
                 var parts = result.split("|");
                 var finalLocation = parts.length > 1 ? parts[1] : location;
