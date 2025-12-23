@@ -2,13 +2,14 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>MK Attendance</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<title>تسجيل حضور الموظفين</title>
 
 <style>
+/* ===============================
+   🌙 DARK MODE
+=============================== */
 body {
-    font-family: 'Cairo', sans-serif;
+    font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #0f172a, #020617);
     display: flex;
     justify-content: center;
@@ -18,24 +19,33 @@ body {
     color: #e5e7eb;
 }
 
+/* ===============================
+   🧾 CARD
+=============================== */
 .card {
-    background: #111827;
-    padding: 36px 38px 34px;
-    border-radius: 26px;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.65);
+    background-color: #111827;
+    padding: 30px 36px 34px;
+    border-radius: 18px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
     text-align: center;
-    width: 380px;
+    width: 340px;
     transition: 0.3s;
 }
 
 .card.success {
-    box-shadow: 0 0 0 2px #22c55e, 0 0 40px rgba(34,197,94,0.6);
+    box-shadow: 0 0 0 2px #22c55e, 0 0 30px rgba(34,197,94,0.6);
     animation: pop 0.6s;
 }
 
 .card.error {
-    box-shadow: 0 0 0 2px #ef4444, 0 0 40px rgba(239,68,68,0.6);
+    box-shadow: 0 0 0 2px #ef4444, 0 0 30px rgba(239,68,68,0.6);
     animation: shake 0.4s;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
 }
 
 @keyframes shake {
@@ -46,76 +56,77 @@ body {
     100% { transform: translateX(0); }
 }
 
-@keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-}
-
+/* ===============================
+   🏢 LOGO
+=============================== */
 .logo {
-    width: 230px;
-    margin-bottom: 18px;
+    width: 200px;
+    display: block;
+    margin: 0 auto 15px;
 }
 
-.icon {
-    font-size: 32px;
-    margin-bottom: 16px;
-}
-
-input {
+/* ===============================
+   🔢 INPUT
+=============================== */
+input[type="text"] {
+    padding: 12px;
     width: 100%;
-    padding: 15px;
-    border-radius: 16px;
+    margin-bottom: 20px;
+    border-radius: 10px;
     border: none;
     background: #020617;
-    color: white;
+    color: #fff;
+    box-sizing: border-box;
     text-align: center;
-    font-size: 16px;
-    margin-bottom: 22px;
 }
 
+input::placeholder {
+    color: #9ca3af;
+}
+
+/* ===============================
+   🔘 BUTTONS
+=============================== */
 button {
     width: 100%;
-    padding: 16px;
-    border-radius: 16px;
+    padding: 13px;
     border: none;
-    font-size: 17px;
-    font-weight: 700;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
 }
 
 button:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-#inBtn {
-    background: linear-gradient(135deg, #15803d, #22c55e);
-    color: white;
-}
-
 .out-btn {
-    margin-top: 14px;
-    background: linear-gradient(135deg, #991b1b, #ef4444);
-    color: white;
+    background: linear-gradient(135deg, #b91c1c, #ef4444);
+    margin-top: 10px;
 }
 
+/* ===============================
+   📢 STATUS
+=============================== */
 #status {
-    margin-top: 20px;
-    font-size: 15px;
+    margin-top: 15px;
+    font-weight: bold;
     white-space: pre-line;
-}
-
-#loader {
-    display: none;
-    margin-top: 14px;
     font-size: 14px;
 }
 
-.footer {
-    margin-top: 18px;
-    font-size: 12px;
-    color: #6b7280;
+/* ===============================
+   ⏳ LOADER
+=============================== */
+#loader {
+    display: none;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #cbd5f5;
 }
 </style>
 </head>
@@ -124,41 +135,53 @@ button:disabled {
 
 <div class="card" id="card">
 
+    <!-- LOGO -->
     <img src="MK.Attendance.png" class="logo">
 
-    <div class="icon" id="icon">📍</div>
+    <input id="empId" type="text" placeholder="ادخل رقم ID">
 
-    <input id="empId" type="text" placeholder="أدخل رقم الموظف (ID)">
+    <button id="inBtn" onclick="sendLocation('IN')">بصمة دخول ⏰</button>
+    <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">بصمة خروج 🚪</button>
 
-    <button id="inBtn" onclick="sendLocation('IN')">✔️ بصمة دخول</button>
-    <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">🚪 بصمة خروج</button>
-
-    <div id="status"></div>
-    <div id="loader">⏳ جاري تسجيل البصمة…</div>
-
-    <div class="footer">© MK Attendance System</div>
+    <p id="status"></p>
+    <div id="loader">⏳ برجاء الانتظار… جاري تسجيل البصمة</div>
 </div>
 
 <script>
+// ===============================
+// 🔐 Android ID من التطبيق
+// ===============================
 const params = new URLSearchParams(window.location.search);
 const androidIdFromApp = params.get("aid") || "";
 
+// منع فتح الموقع بدون App
 if (!androidIdFromApp) {
-    document.body.innerHTML = "<h2 style='color:white'>❌ الدخول من التطبيق فقط</h2>";
+    document.body.innerHTML = `
+        <div style="text-align:center;color:white">
+            <h2>❌ غير مسموح بالدخول</h2>
+            <p>من فضلك استخدم تطبيق الشركة لتسجيل الحضور</p>
+        </div>
+    `;
 }
 
+// ===============================
+// 📍 إرسال البصمة
+// ===============================
 function sendLocation(action) {
 
-    const id = document.getElementById("empId").value;
-    const statusEl = document.getElementById("status");
-    const loader = document.getElementById("loader");
-    const card = document.getElementById("card");
-    const icon = document.getElementById("icon");
-    const inBtn = document.getElementById("inBtn");
-    const outBtn = document.getElementById("outBtn");
+    if (!androidIdFromApp) {
+        alert("❌ الدخول مسموح من التطبيق فقط");
+        return;
+    }
+
+    var id = document.getElementById("empId").value;
+    var statusEl = document.getElementById("status");
+    var loader = document.getElementById("loader");
+    var inBtn = document.getElementById("inBtn");
+    var outBtn = document.getElementById("outBtn");
+    var card = document.getElementById("card");
 
     card.classList.remove("success","error");
-    icon.innerText = "📍";
 
     if (!id) {
         statusEl.style.color = "#ef4444";
@@ -166,34 +189,33 @@ function sendLocation(action) {
         return;
     }
 
-    /* 🔒 قفل وقت التحميل فقط */
     inBtn.disabled = true;
     outBtn.disabled = true;
-
     loader.style.display = "block";
     statusEl.innerText = "";
 
     navigator.geolocation.getCurrentPosition(success, error, {
         enableHighAccuracy: true,
-        timeout: 5000
+        timeout: 5000,
+        maximumAge: 0
     });
 
     function success(pos) {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
 
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
         .then(res => res.json())
         .then(data => {
 
-            const addr = data.address || {};
-            const village = addr.village || addr.town || addr.city || "غير معروف";
-            const district = addr.county || addr.city || "غير معروف";
-            const state = addr.state || "غير معروف";
+            var addr = data.address || {};
+            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
+            var district = addr.municipality || addr.county || addr.city || "غير معروف";
+            var state = addr.state || "غير معروف";
 
-            const location = village + " – " + district + " – " + state;
+            var location = village + " – " + district + " – " + state;
 
-            return fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
+            fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
                 method: "POST",
                 body: new URLSearchParams({
                     id,
@@ -204,43 +226,50 @@ function sendLocation(action) {
                     android_id: androidIdFromApp,
                     action
                 })
+            })
+            .then(res => res.text())
+            .then(result => {
+
+                loader.style.display = "none";
+                inBtn.disabled = false;
+                outBtn.disabled = false;
+
+                if (result.startsWith("ERROR")) {
+                    card.classList.add("error");
+                    statusEl.style.color = "#ef4444";
+                    statusEl.innerText = "❌ العملية غير مسموحة";
+                    return;
+                }
+
+                card.classList.add("success");
+                statusEl.style.color = "#22c55e";
+
+                var now = new Date();
+                var date =
+                    now.getFullYear() + "-" +
+                    (now.getMonth()+1).toString().padStart(2,"0") + "-" +
+                    now.getDate().toString().padStart(2,"0");
+
+                var time =
+                    now.getHours().toString().padStart(2,"0") + ":" +
+                    now.getMinutes().toString().padStart(2,"0") + ":" +
+                    now.getSeconds().toString().padStart(2,"0");
+
+                statusEl.innerText =
+                    "✅ تم تسجيل البصمة بنجاح\n" +
+                    location + "\n" +
+                    date + " " + time;
             });
-        })
-        .then(res => res.text())
-        .then(result => {
-
-            loader.style.display = "none";
-
-            /* 🔓 فتح الزرارين بعد النتيجة */
-            inBtn.disabled = false;
-            outBtn.disabled = false;
-
-            if (result.startsWith("ERROR")) {
-                card.classList.add("error");
-                icon.innerText = "❌";
-                statusEl.style.color = "#ef4444";
-                statusEl.innerText = "❌ العملية غير مسموحة";
-                return;
-            }
-
-            card.classList.add("success");
-            icon.innerText = "✔️";
-            statusEl.style.color = "#22c55e";
-            statusEl.innerText = "✅ تم تسجيل البصمة بنجاح";
         });
     }
 
     function error() {
         loader.style.display = "none";
-
-        /* 🔓 فتح الزرارين */
         inBtn.disabled = false;
         outBtn.disabled = false;
-
         card.classList.add("error");
-        icon.innerText = "❌";
         statusEl.style.color = "#ef4444";
-        statusEl.innerText = "تعذر الحصول على الموقع";
+        statusEl.innerText = "تعذر الحصول على الموقع.";
     }
 }
 </script>
