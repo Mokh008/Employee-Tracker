@@ -84,6 +84,11 @@ button {
     cursor: pointer;
 }
 
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 #inBtn {
     background: linear-gradient(135deg, #15803d, #22c55e);
     color: white;
@@ -143,8 +148,8 @@ if (!androidIdFromApp) {
 }
 
 function resetUI() {
-    document.getElementById("card").classList.remove("success","error");
-    document.getElementById("icon").innerText = "📍";
+    card.classList.remove("success","error");
+    icon.innerText = "📍";
 }
 
 function sendLocation(action) {
@@ -156,12 +161,18 @@ function sendLocation(action) {
     const loader = document.getElementById("loader");
     const card = document.getElementById("card");
     const icon = document.getElementById("icon");
+    const inBtn = document.getElementById("inBtn");
+    const outBtn = document.getElementById("outBtn");
 
     if (!id) {
         statusEl.style.color = "#ef4444";
         statusEl.innerText = "⚠️ من فضلك أدخل رقم ID";
         return;
     }
+
+    /* 🔒 قفل الزراير */
+    inBtn.disabled = true;
+    outBtn.disabled = true;
 
     loader.style.display = "block";
     statusEl.innerText = "";
@@ -204,6 +215,10 @@ function sendLocation(action) {
 
             loader.style.display = "none";
 
+            /* 🔓 فتح الزراير */
+            inBtn.disabled = false;
+            outBtn.disabled = false;
+
             if (result.startsWith("ERROR")) {
                 card.classList.add("error");
                 icon.innerText = "❌";
@@ -221,6 +236,11 @@ function sendLocation(action) {
 
     function error() {
         loader.style.display = "none";
+
+        /* 🔓 فتح الزراير */
+        inBtn.disabled = false;
+        outBtn.disabled = false;
+
         card.classList.add("error");
         icon.innerText = "❌";
         statusEl.style.color = "#ef4444";
