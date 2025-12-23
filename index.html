@@ -215,51 +215,55 @@ function sendLocation(action) {
 
             var location = village + " – " + district + " – " + state;
 
-            fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
+            return fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
                 method: "POST",
                 body: new URLSearchParams({
-                    id,
-                    location,
-                    lat,
-                    lng,
+                    id: id,
+                    location: location,
+                    lat: lat,
+                    lng: lng,
                     location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
                     android_id: androidIdFromApp,
-                    action
+                    action: action
                 })
-            })
-            .then(res => res.text())
-            .then(result => {
-
-                loader.style.display = "none";
-                inBtn.disabled = false;
-                outBtn.disabled = false;
-
-                if (result.startsWith("ERROR")) {
-                    card.classList.add("error");
-                    statusEl.style.color = "#ef4444";
-                    statusEl.innerText = "❌ العملية غير مسموحة";
-                    return;
-                }
-
-                card.classList.add("success");
-                statusEl.style.color = "#22c55e";
-
-                var now = new Date();
-                var date =
-                    now.getFullYear() + "-" +
-                    (now.getMonth()+1).toString().padStart(2,"0") + "-" +
-                    now.getDate().toString().padStart(2,"0");
-
-                var time =
-                    now.getHours().toString().padStart(2,"0") + ":" +
-                    now.getMinutes().toString().padStart(2,"0") + ":" +
-                    now.getSeconds().toString().padStart(2,"0");
-
-                statusEl.innerText =
-                    "✅ تم تسجيل البصمة بنجاح\n" +
-                    location + "\n" +
-                    date + " " + time;
             });
+        })
+        .then(res => res.text())
+        .then(result => {
+
+            loader.style.display = "none";
+            inBtn.disabled = false;
+            outBtn.disabled = false;
+
+            if (result.startsWith("ERROR")) {
+                card.classList.add("error");
+                statusEl.style.color = "#ef4444";
+                statusEl.innerText = "❌ العملية غير مسموحة";
+                return;
+            }
+
+            // 👈 المكان المصحّح من Google Sheet
+            var parts = result.split("|");
+            var finalLocation = parts.length > 1 ? parts[1] : "";
+
+            card.classList.add("success");
+            statusEl.style.color = "#22c55e";
+
+            var now = new Date();
+            var date =
+                now.getFullYear() + "-" +
+                (now.getMonth()+1).toString().padStart(2,"0") + "-" +
+                now.getDate().toString().padStart(2,"0");
+
+            var time =
+                now.getHours().toString().padStart(2,"0") + ":" +
+                now.getMinutes().toString().padStart(2,"0") + ":" +
+                now.getSeconds().toString().padStart(2,"0");
+
+            statusEl.innerText =
+                "✅ تم تسجيل البصمة بنجاح\n" +
+                finalLocation + "\n" +
+                date + " " + time;
         });
     }
 
