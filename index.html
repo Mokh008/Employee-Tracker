@@ -24,11 +24,11 @@ body {
 =============================== */
 .card {
     background: #111827;
-    padding: 34px 36px 38px;
-    border-radius: 24px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    padding: 36px 38px 40px;
+    border-radius: 26px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.65);
     text-align: center;
-    width: 360px;
+    width: 380px;
     animation: fadeIn 0.4s ease;
 }
 
@@ -41,27 +41,28 @@ body {
    🏢 LOGO
 =============================== */
 .logo {
-    width: 180px;
+    width: 230px;              /* مكبّر بوضوح */
+    max-width: 100%;
     display: block;
-    margin: 0 auto 20px;
+    margin: 0 auto 24px;
     background: #111827;
-    padding: 12px;
-    border-radius: 18px;
-    box-shadow: 0 10px 22px rgba(0,0,0,0.65);
+    padding: 14px;
+    border-radius: 20px;
+    box-shadow: 0 12px 26px rgba(0,0,0,0.7);
 }
 
 /* ===============================
    📍 LOCATION ICON
 =============================== */
 .location-icon {
-    font-size: 28px;
-    margin-bottom: 12px;
+    font-size: 30px;
+    margin-bottom: 14px;
     animation: pulse 1.6s infinite;
 }
 
 @keyframes pulse {
     0%   { transform: scale(1); opacity: 1; }
-    50%  { transform: scale(1.15); opacity: 0.7; }
+    50%  { transform: scale(1.18); opacity: 0.7; }
     100% { transform: scale(1); opacity: 1; }
 }
 
@@ -70,14 +71,14 @@ body {
 =============================== */
 input[type="text"] {
     width: 100%;
-    padding: 14px;
-    margin: 18px 0 22px;
-    border-radius: 14px;
+    padding: 15px;
+    margin: 20px 0 24px;
+    border-radius: 16px;
     border: none;
     outline: none;
     background: #020617;
     color: #f9fafb;
-    font-size: 15px;
+    font-size: 16px;
     text-align: center;
 }
 
@@ -90,10 +91,10 @@ input::placeholder {
 =============================== */
 button {
     width: 100%;
-    padding: 15px;
-    border-radius: 14px;
+    padding: 16px;
+    border-radius: 16px;
     border: none;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s ease;
@@ -101,7 +102,7 @@ button {
 
 button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.55);
 }
 
 button:disabled {
@@ -115,7 +116,7 @@ button:disabled {
 }
 
 .out-btn {
-    margin-top: 12px;
+    margin-top: 14px;
     background: linear-gradient(135deg, #b91c1c, #ef4444);
     color: white;
 }
@@ -124,8 +125,8 @@ button:disabled {
    📢 STATUS
 =============================== */
 #status {
-    margin-top: 18px;
-    font-size: 14px;
+    margin-top: 20px;
+    font-size: 15px;
     white-space: pre-line;
 }
 
@@ -134,8 +135,8 @@ button:disabled {
 =============================== */
 #loader {
     display: none;
-    margin-top: 14px;
-    font-size: 14px;
+    margin-top: 16px;
+    font-size: 15px;
     color: #cbd5f5;
 }
 
@@ -144,11 +145,11 @@ button:disabled {
 =============================== */
 @media (max-width: 480px) {
     .card {
-        width: 92%;
-        padding: 30px 24px 32px;
+        width: 94%;
+        padding: 32px 26px 34px;
     }
     .logo {
-        width: 200px;
+        width: 260px;
     }
 }
 </style>
@@ -159,7 +160,7 @@ button:disabled {
 <div class="card">
 
     <!-- LOGO -->
-    <img src="logo.png" class="logo">
+    <img src="MK.Attendance.png" class="logo">
 
     <!-- LOCATION ICON -->
     <div class="location-icon">📍</div>
