@@ -85,7 +85,7 @@ button {
 }
 
 button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
@@ -147,14 +147,7 @@ if (!androidIdFromApp) {
     document.body.innerHTML = "<h2 style='color:white'>❌ الدخول من التطبيق فقط</h2>";
 }
 
-function resetUI() {
-    card.classList.remove("success","error");
-    icon.innerText = "📍";
-}
-
 function sendLocation(action) {
-
-    resetUI();
 
     const id = document.getElementById("empId").value;
     const statusEl = document.getElementById("status");
@@ -164,13 +157,16 @@ function sendLocation(action) {
     const inBtn = document.getElementById("inBtn");
     const outBtn = document.getElementById("outBtn");
 
+    card.classList.remove("success","error");
+    icon.innerText = "📍";
+
     if (!id) {
         statusEl.style.color = "#ef4444";
         statusEl.innerText = "⚠️ من فضلك أدخل رقم ID";
         return;
     }
 
-    /* 🔒 قفل الزراير */
+    /* 🔒 قفل وقت التحميل فقط */
     inBtn.disabled = true;
     outBtn.disabled = true;
 
@@ -215,7 +211,7 @@ function sendLocation(action) {
 
             loader.style.display = "none";
 
-            /* 🔓 فتح الزراير */
+            /* 🔓 فتح الزرارين بعد النتيجة */
             inBtn.disabled = false;
             outBtn.disabled = false;
 
@@ -237,7 +233,7 @@ function sendLocation(action) {
     function error() {
         loader.style.display = "none";
 
-        /* 🔓 فتح الزراير */
+        /* 🔓 فتح الزرارين */
         inBtn.disabled = false;
         outBtn.disabled = false;
 
