@@ -5,9 +5,6 @@
 <title>تسجيل حضور الموظفين</title>
 
 <style>
-/* ===============================
-   🌙 DARK MODE
-=============================== */
 body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #0f172a, #020617);
@@ -19,9 +16,6 @@ body {
     color: #e5e7eb;
 }
 
-/* ===============================
-   🧾 CARD
-=============================== */
 .card {
     background-color: #111827;
     padding: 30px 36px 34px;
@@ -56,18 +50,12 @@ body {
     100% { transform: translateX(0); }
 }
 
-/* ===============================
-   🏢 LOGO
-=============================== */
 .logo {
     width: 200px;
     display: block;
     margin: 0 auto 15px;
 }
 
-/* ===============================
-   🔢 INPUT
-=============================== */
 input[type="text"] {
     padding: 12px;
     width: 100%;
@@ -84,9 +72,6 @@ input::placeholder {
     color: #9ca3af;
 }
 
-/* ===============================
-   🔘 BUTTONS
-=============================== */
 button {
     width: 100%;
     padding: 13px;
@@ -109,9 +94,6 @@ button:disabled {
     margin-top: 10px;
 }
 
-/* ===============================
-   📢 STATUS
-=============================== */
 #status {
     margin-top: 15px;
     font-weight: bold;
@@ -119,9 +101,6 @@ button:disabled {
     font-size: 14px;
 }
 
-/* ===============================
-   ⏳ LOADER
-=============================== */
 #loader {
     display: none;
     margin-top: 15px;
@@ -135,7 +114,6 @@ button:disabled {
 
 <div class="card" id="card">
 
-    <!-- LOGO -->
     <img src="MK.Attendance.png" class="logo">
 
     <input id="empId" type="text" placeholder="ادخل رقم ID">
@@ -154,7 +132,6 @@ button:disabled {
 const params = new URLSearchParams(window.location.search);
 const androidIdFromApp = params.get("aid") || "";
 
-// منع فتح الموقع بدون App
 if (!androidIdFromApp) {
     document.body.innerHTML = `
         <div style="text-align:center;color:white">
@@ -209,9 +186,30 @@ function sendLocation(action) {
         .then(data => {
 
             var addr = data.address || {};
-            var village = addr.village || addr.hamlet || addr.town || addr.city || "غير معروف";
-            var district = addr.municipality || addr.county || addr.city || "غير معروف";
-            var state = addr.state || "غير معروف";
+
+            // ✅ نفس منطق الكود الأول (بدون أي تغيير)
+            var isCity = !!(addr.city || addr.town);
+
+            var village =
+                addr.village ||
+                addr.hamlet ||
+                addr.town ||
+                addr.city ||
+                "غير معروف";
+
+            var district =
+                addr.municipality ||
+                addr.county ||
+                addr.city_district ||
+                addr.suburb ||
+                addr.city ||
+                "غير معروف";
+
+            var state = addr.state || addr.region || "غير معروف";
+
+            if (isCity && village !== "غير معروف") {
+                district = village;
+            }
 
             var location = village + " – " + district + " – " + state;
 
@@ -242,7 +240,6 @@ function sendLocation(action) {
                 return;
             }
 
-            // 👈 المكان المصحّح من Google Sheet
             var parts = result.split("|");
             var finalLocation = parts.length > 1 ? parts[1] : "";
 
