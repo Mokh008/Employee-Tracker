@@ -68,10 +68,6 @@ input[type="text"] {
     text-align: center;
 }
 
-input::placeholder {
-    color: #9ca3af;
-}
-
 button {
     width: 100%;
     padding: 13px;
@@ -105,7 +101,6 @@ button:disabled {
     display: none;
     margin-top: 15px;
     font-weight: bold;
-    color: #cbd5f5;
 }
 </style>
 </head>
@@ -187,7 +182,14 @@ function sendLocation(action) {
 
             var addr = data.address || {};
 
-            // ✅ التعديل الوحيد: ترتيب ذكي لاسم المكان
+            // ===============================
+            // ✅ تحديد هل المكان قرية فعلاً
+            // ===============================
+            var isVillage = !!(addr.village || addr.hamlet || addr.locality);
+
+            // ===============================
+            // ✅ اسم المكان (قرية / عزبة / حي)
+            // ===============================
             var place =
                 addr.village ||
                 addr.hamlet ||
@@ -198,13 +200,19 @@ function sendLocation(action) {
                 addr.city ||
                 "موقع غير مسمى";
 
+            // ===============================
+            // ✅ المركز / المدينة (من غير خلط)
+            // ===============================
             var district =
                 addr.municipality ||
                 addr.county ||
                 addr.city_district ||
-                addr.city ||
+                (isVillage ? place : addr.city) ||
                 place;
 
+            // ===============================
+            // ✅ المحافظة
+            // ===============================
             var state =
                 addr.state ||
                 addr.region ||
