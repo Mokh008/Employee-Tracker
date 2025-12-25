@@ -187,31 +187,30 @@ function sendLocation(action) {
 
             var addr = data.address || {};
 
-            // ✅ نفس منطق الكود الأول (بدون أي تغيير)
-            var isCity = !!(addr.city || addr.town);
-
-            var village =
+            // ✅ التعديل الوحيد: ترتيب ذكي لاسم المكان
+            var place =
                 addr.village ||
                 addr.hamlet ||
+                addr.locality ||
+                addr.neighbourhood ||
+                addr.suburb ||
                 addr.town ||
                 addr.city ||
-                "غير معروف";
+                "موقع غير مسمى";
 
             var district =
                 addr.municipality ||
                 addr.county ||
                 addr.city_district ||
-                addr.suburb ||
                 addr.city ||
+                place;
+
+            var state =
+                addr.state ||
+                addr.region ||
                 "غير معروف";
 
-            var state = addr.state || addr.region || "غير معروف";
-
-            if (isCity && village !== "غير معروف") {
-                district = village;
-            }
-
-            var location = village + " – " + district + " – " + state;
+            var location = place + " – " + district + " – " + state;
 
             return fetch("https://script.google.com/macros/s/AKfycbyTSDoFMjQAJGLJU65yHXsM9EnSY35J5Ga1GlE0wqirlERTj5yhwtsZ2-wncQw0PXjx3w/exec", {
                 method: "POST",
