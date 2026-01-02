@@ -127,13 +127,14 @@ button:disabled {
 const params = new URLSearchParams(window.location.search);
 const androidIdFromApp = params.get("aid") || "";
 
-if (!androidIdFromApp) {
-    document.body.innerHTML = `
-        <div style="text-align:center;color:white">
-            <h2>❌ غير مسموح بالدخول</h2>
-            <p>من فضلك استخدم تطبيق الشركة لتسجيل الحضور</p>
-        </div>
-    `;
+// ===============================
+// 🍏 iPhone Exception (مؤقت)
+// ===============================
+const IOS_ALLOWED_IDS = ["1001194"];
+
+function isIOSAllowed() {
+    const id = document.getElementById("empId")?.value.trim() || "";
+    return IOS_ALLOWED_IDS.includes(id);
 }
 
 // ===============================
@@ -141,8 +142,8 @@ if (!androidIdFromApp) {
 // ===============================
 function sendLocation(action) {
 
-    if (!androidIdFromApp) {
-        alert("❌ الدخول مسموح من التطبيق فقط");
+    if (!androidIdFromApp && !isIOSAllowed()) {
+        alert("❌ هذا الحساب غير مسموح له باستخدام الموقع");
         return;
     }
 
@@ -181,15 +182,8 @@ function sendLocation(action) {
         .then(data => {
 
             var addr = data.address || {};
-
-            // ===============================
-            // ✅ تحديد هل المكان قرية فعلاً
-            // ===============================
             var isVillage = !!(addr.village || addr.hamlet || addr.locality);
 
-            // ===============================
-            // ✅ اسم المكان (قرية / عزبة / حي)
-            // ===============================
             var place =
                 addr.village ||
                 addr.hamlet ||
@@ -200,9 +194,6 @@ function sendLocation(action) {
                 addr.city ||
                 "موقع غير مسمى";
 
-            // ===============================
-            // ✅ المركز / المدينة (من غير خلط)
-            // ===============================
             var district =
                 addr.municipality ||
                 addr.county ||
@@ -210,9 +201,6 @@ function sendLocation(action) {
                 (isVillage ? place : addr.city) ||
                 place;
 
-            // ===============================
-            // ✅ المحافظة
-            // ===============================
             var state =
                 addr.state ||
                 addr.region ||
@@ -228,7 +216,7 @@ function sendLocation(action) {
                     lat: lat,
                     lng: lng,
                     location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
-                    android_id: androidIdFromApp,
+                    android_id: androidIdFromApp || "IOS-1001194",
                     action: action
                 })
             });
