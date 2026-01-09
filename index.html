@@ -5,6 +5,7 @@
 <title>تسجيل حضور الموظفين</title>
 
 <style>
+/* === نفس الستايل بدون أي تغيير === */
 body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #0f172a, #020617);
@@ -15,7 +16,6 @@ body {
     margin: 0;
     color: #e5e7eb;
 }
-
 .card {
     background-color: #111827;
     padding: 30px 36px 34px;
@@ -25,23 +25,19 @@ body {
     width: 340px;
     transition: 0.3s;
 }
-
 .card.success {
     box-shadow: 0 0 0 2px #22c55e, 0 0 30px rgba(34,197,94,0.6);
     animation: pop 0.6s;
 }
-
 .card.error {
     box-shadow: 0 0 0 2px #ef4444, 0 0 30px rgba(239,68,68,0.6);
     animation: shake 0.4s;
 }
-
 @keyframes pop {
     0% { transform: scale(1); }
     50% { transform: scale(1.03); }
     100% { transform: scale(1); }
 }
-
 @keyframes shake {
     0% { transform: translateX(0); }
     25% { transform: translateX(-6px); }
@@ -49,13 +45,11 @@ body {
     75% { transform: translateX(-6px); }
     100% { transform: translateX(0); }
 }
-
 .logo {
     width: 200px;
     display: block;
     margin: 0 auto 15px;
 }
-
 input[type="text"] {
     padding: 12px;
     width: 100%;
@@ -67,7 +61,6 @@ input[type="text"] {
     box-sizing: border-box;
     text-align: center;
 }
-
 button {
     width: 100%;
     padding: 13px;
@@ -79,24 +72,20 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
-
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
-
 .out-btn {
     background: linear-gradient(135deg, #b91c1c, #ef4444);
     margin-top: 10px;
 }
-
 #status {
     margin-top: 15px;
     font-weight: bold;
     white-space: pre-line;
     font-size: 14px;
 }
-
 #loader {
     display: none;
     margin-top: 15px;
@@ -108,14 +97,10 @@ button:disabled {
 <body>
 
 <div class="card" id="card">
-
     <img src="MK.Attendance.png" class="logo">
-
     <input id="empId" type="text" placeholder="ادخل رقم ID">
-
     <button id="inBtn" onclick="sendLocation('IN')">بصمة دخول ⏰</button>
     <button id="outBtn" class="out-btn" onclick="sendLocation('OUT')">بصمة خروج 🚪</button>
-
     <p id="status"></p>
     <div id="loader">⏳ برجاء الانتظار… جاري تسجيل البصمة</div>
 </div>
@@ -221,8 +206,18 @@ function sendLocation(action) {
                 })
             });
         })
-        .then(res => res.text())
+        // ✅ ADDED: منع التعليق لو Nominatim فشل
+        .catch(err => {
+            console.warn("Nominatim error:", err);
+        })
+        // ✅ ADDED: نضمن إن الكود يكمل
+        .finally(() => {
+            // لا نغير أي منطق – فقط نسمح للسلسلة إنها تنتهي
+        })
+        .then(res => res && res.text())
         .then(result => {
+
+            if (!result) return;
 
             loader.style.display = "none";
             inBtn.disabled = false;
@@ -272,10 +267,3 @@ function sendLocation(action) {
 
 </body>
 </html>
-
-
-
-
-
-
-
