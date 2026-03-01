@@ -130,7 +130,7 @@ const androidIdFromApp = params.get("aid") || "";
 // ===============================
 // 🍏 iPhone Exception (مؤقت)
 // ===============================
-const IOS_ALLOWED_IDS = ["1001194"];
+const IOS_ALLOWED_IDS = ["1001194", "1001782"];
 
 function isIOSAllowed() {
     const id = document.getElementById("empId")?.value.trim() || "";
@@ -216,7 +216,7 @@ function sendLocation(action) {
                     lat: lat,
                     lng: lng,
                     location_link: "https://www.google.com/maps?q=" + lat + "," + lng,
-                    android_id: androidIdFromApp || "IOS-1001194",
+                    android_id: androidIdFromApp || "IOS-" + id,
                     action: action
                 })
             });
@@ -272,4 +272,5 @@ function sendLocation(action) {
 
 </body>
 </html>
+
 
