@@ -177,7 +177,7 @@ function sendLocation(action) {
 // ✅ التحقق من الـ ID — بعد ما نتأكد إن فيه قيمة
 if (!ALLOWED_EMP_IDS.includes(id)) {
     statusEl.style.color = "#ef4444";
-    statusEl.innerText = "❌ رقم ID غير صحيح، تواصل مع المسؤول";
+    statusEl.innerText = "❌ الرقم غير صحيح من فضلك ادخل رقم ID صحيح";
     card.classList.add("error");
     return;
 }
@@ -292,6 +292,7 @@ if (!ALLOWED_EMP_IDS.includes(id)) {
 
 </body>
 </html>
+
 
 
 
